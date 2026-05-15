@@ -46,7 +46,7 @@ class InspectionController extends Controller
             'defect_type'    => $claudeResult['defect_type'] ?? 'Unknown',
             'confidence'     => $claudeResult['confidence'] ?? 0,
             'pass_fail'      => $claudeResult['pass_fail'] ?? 'FAIL',
-            'reasoning'      => $claudeResult['reasoning'] ?? '',
+            'claude_reasoning' => $claudeResult['reasoning'] ?? '',
             'yolo_detections'=> json_encode($yoloResult['detections'] ?? []),
             'yolo_count'     => $yoloResult['count'] ?? 0,
             'yolo_model'     => $yoloResult['model_used'] ?? 'unavailable',

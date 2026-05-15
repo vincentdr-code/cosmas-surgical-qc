@@ -1,15 +1,17 @@
 <?php
+
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\InspectionController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('inspections.upload');
+    return redirect()->route('dashboard');
 });
 
-Route::get('/dashboard', function () {
-    return redirect()->route('inspections.upload');
-})->middleware(['auth'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     // Inspection routes
