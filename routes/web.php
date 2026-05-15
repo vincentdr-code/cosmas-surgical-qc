@@ -19,6 +19,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/upload', [InspectionController::class, 'upload'])->name('inspections.store');
     Route::get('/results/{inspection}', [InspectionController::class, 'results'])->name('inspections.results');
     Route::get('/audit-log', [InspectionController::class, 'auditLog'])->name('inspections.audit-log');
+    Route::get('/roi', [App\Http\Controllers\RoiController::class, 'index'])->name('roi');
 
     // Profile routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
