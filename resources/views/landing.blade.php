@@ -136,7 +136,7 @@
                     </div>
                     <p class="text-gray-300 text-sm leading-relaxed">Claude receives the image plus YOLO's detections and produces a calibrated PASS/FAIL verdict with confidence score, regulatory note (ISO 7153-1, FDA 21 CFR), and recommended action.</p>
                     <div class="mt-4 grid grid-cols-2 gap-2">
-                        @foreach(['PASS / FAIL verdict', 'Confidence score', 'Regulatory note', 'Audit trail']) as $f)
+                        @foreach(['PASS / FAIL verdict', 'Confidence score', 'Regulatory note', 'Audit trail'] as $f)
                         <span class="text-xs bg-purple-800/40 text-purple-200 px-2 py-1 rounded">{{ $f }}</span>
                         @endforeach
                     </div>
