@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-and-test:
+    name: PHP Lint & Laravel Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, sqlite3, pdo_sqlite
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Copy .env for testing
+        run: cp .env.example .env
+
+      - name: Generate app key
+        run: php artisan key:generate
+
+      - name: Run PHP syntax check
+        run: find app -name "*.php" -exec php -l {} \; | grep -v "No syntax errors" || true
+
+      - name: Run Laravel tests
+        run: php artisan test --env=testing
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
