@@ -146,6 +146,45 @@
                 @endif
             </div>
 
+            {{-- ── Inspection Trend (14-day) ───────────────────────────────── --}}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base font-semibold text-gray-900">Inspection Trend — Last 14 Days</h3>
+                    <span class="text-xs text-gray-400">PASS · FAIL · FLAGGED</span>
+                </div>
+                <canvas id="trendChart" height="80"></canvas>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+            <script>
+            (function () {
+                const labels = @json($trendLabels);
+                const pass   = @json($trendPass);
+                const fail   = @json($trendFail);
+                const flag   = @json($trendFlagged);
+
+                new Chart(document.getElementById('trendChart'), {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [
+                            { label: 'PASS',    data: pass, backgroundColor: '#22c55e', borderRadius: 3 },
+                            { label: 'FAIL',    data: fail, backgroundColor: '#ef4444', borderRadius: 3 },
+                            { label: 'FLAGGED', data: flag, backgroundColor: '#f59e0b', borderRadius: 3 },
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { position: 'bottom' } },
+                        scales: {
+                            x: { stacked: true, grid: { display: false } },
+                            y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } }
+                        }
+                    }
+                });
+            })();
+            </script>
+
             {{-- ── How It Works ───────────────────────────────────────────── --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <h3 class="text-base font-semibold text-gray-900 mb-4">How Cosmas Sentry Works</h3>
