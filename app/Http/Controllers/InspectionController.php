@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use App\Services\InspectionPromptService;
 
 class InspectionController extends Controller
 {
@@ -118,7 +119,7 @@ class InspectionController extends Controller
     {
         $imageData   = base64_encode(file_get_contents($imagePath));
         $mimeType    = mime_content_type($imagePath);
-        $yoloContext = $this->buildYoloContext($yoloResult);
+        // Prompt is now managed by InspectionPromptService (versioned for audit trail)
 
         $prompt = <<<PROMPT
 You are Cosmas Sentry, an AI quality-control assistant for surgical instrument manufacturing under ISO 7153-1 and ASTM F899 standards.
