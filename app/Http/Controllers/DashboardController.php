@@ -49,7 +49,7 @@ class DashboardController extends Controller
             $trendFlagged[] = (int) ($group->firstWhere('verdict', 'FLAGGED')?->cnt ?? 0);
         }
 
-        \$lastInspection = Inspection::latest()->first();
+        $lastInspection = Inspection::latest()->first();
 
         return view('dashboard', compact(
             'total', 'passed', 'failed', 'flagged', 'passRate', 'costSaved',
