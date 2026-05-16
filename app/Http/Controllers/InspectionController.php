@@ -39,6 +39,19 @@ class InspectionController extends Controller
         // ── Step 2: Claude reasoning (with YOLO context) ──────────────────
         $claudeResult = $this->runClaudeAnalysis($fullPath, $yoloResult);
 
+
+        // ── Step 2b: Apply user confidence threshold ───────────────────────
+        // If Claude says PASS but isn't confident enough, downgrade to FLAGGED.
+        // This keeps AI in an augmentation role — human QC has the final word.
+        $threshold = Auth::user()->confidence_threshold ?? 70;
+        if (strtoupper($claudeResult['pass_fail'] ?? '') === 'PASS'
+            && ($claudeResult['confidence'] ?? 0) < $threshold) {
+            $claudeResult['pass_fail'] = 'FLAGGED';
+            $claudeResult['reasoning'] = ($claudeResult['reasoning'] ?? '')
+                . " [Auto-flagged: AI confidence ({$claudeResult['confidence']}%) is below your QC threshold ({$threshold}%). Human review required per FDA 21 CFR Part 11.]";
+            $claudeResult['recommended_action'] = 'Flag for supervisor review';
+        }
+
         // ── Step 3: Persist to DB ──────────────────────────────────────────
         $inspection = Inspection::create([
             'user_id'            => Auth::id(),
@@ -212,11 +225,15 @@ PROMPT;
         return view('inspections.results', compact('inspection'));
     }
 
-    public function auditLog()
+    public function auditLog(Request $request)
     {
-        $inspections = Inspection::where('user_id', Auth::id())
-            ->latest()
-            ->paginate(20);
+        $query = Inspection::where('user_id', Auth::id())->latest();
+
+        if ($request->filled('status')) {
+            $query->whereRaw('UPPER(pass_fail) = ?', [strtoupper($request->status)]);
+        }
+
+        $inspections = $query->paginate(20)->withQueryString();
         return view('inspections.audit-log', compact('inspections'));
     }
 
@@ -245,12 +262,8 @@ PROMPT;
             ]);
 
             foreach ($inspections as $row) {
-                $conf     = $row->confidence
-                    ? round($row->confidence * ($row->confidence <= 1 ? 100 : 1), 1)
-                    : '';
-                $yoloConf = $row->yolo_confidence
-                    ? round($row->yolo_confidence * ($row->yolo_confidence <= 1 ? 100 : 1), 1)
-                    : '';
+                $conf     = $row->confidence ? round($row->confidence, 1) : '';
+                $yoloConf = '';  // yolo_confidence not in current schema
 
                 fputcsv($handle, [
                     $row->id,
