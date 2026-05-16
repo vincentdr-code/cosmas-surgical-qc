@@ -12,7 +12,9 @@ use Illuminate\Support\Facades\Route;
 | sanctum middleware and are prefixed /api/v1/secure/.
 */
 
-Route::prefix('v1')->group(function () {
-    Route::get('/stats',        [ApiController::class, 'stats'])->name('api.stats');
-    Route::get('/inspections',  [ApiController::class, 'inspections'])->name('api.inspections');
-});
+Route::prefix('v1')
+    ->middleware(['throttle:60,1'])  // 60 requests per minute per IP
+    ->group(function () {
+        Route::get('/stats',       [ApiController::class, 'stats'])->name('api.stats');
+        Route::get('/inspections', [ApiController::class, 'inspections'])->name('api.inspections');
+    });

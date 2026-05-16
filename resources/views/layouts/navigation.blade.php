@@ -39,6 +39,10 @@
                        class="px-3 py-2 text-sm font-medium rounded transition {{ request()->routeIs('model.stats') ? 'text-white bg-slate-700' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}">
                         Model Stats
                     </a>
+                    <a href="{{ route('settings.threshold') }}"
+                       class="px-3 py-2 text-sm font-medium rounded transition {{ request()->routeIs('settings.*') ? 'text-white bg-slate-700' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}">
+                        ⚙ Settings
+                    </a>
                 </div>
             </div>
             <!-- User Dropdown -->
@@ -86,6 +90,7 @@
             <a href="{{ route('roi') }}" class="block px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded text-sm">ROI Calculator</a>
             <a href="{{ route('pipeline') }}" class="block px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded text-sm">How It Works</a>
             <a href="{{ route('model.stats') }}" class="block px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded text-sm">Model Stats</a>
+            <a href="{{ route('settings.threshold') }}" class="block px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded text-sm">⚙ Settings</a>
         </div>
         <div class="pt-4 pb-1 border-t border-slate-700 px-4">
             <div class="font-medium text-base text-white">{{ Auth::user()->name }}</div>
