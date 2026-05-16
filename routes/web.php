@@ -25,6 +25,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/upload', [InspectionController::class, 'upload'])->name('inspections.store');
     Route::get('/results/{inspection}', [InspectionController::class, 'results'])->name('inspections.results');
     Route::get('/audit-log', [InspectionController::class, 'auditLog'])->name('inspections.audit-log');
+    Route::get('/audit-log/export', [InspectionController::class, 'exportCsv'])->name('inspections.export-csv');
+
 
     // ── Demo inspection (one-click, no upload needed) ──────────────────────────
     Route::get('/demo', [App\Http\Controllers\DemoController::class, 'run'])->name('demo');

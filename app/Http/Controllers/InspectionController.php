@@ -219,4 +219,56 @@ PROMPT;
             ->paginate(20);
         return view('inspections.audit-log', compact('inspections'));
     }
+
+    /**
+     * Export the full audit log as a CSV file.
+     * Supports FDA 21 CFR Part 11 audit trail requirements.
+     */
+    public function exportCsv()
+    {
+        $inspections = \App\Models\Inspection::latest()->get();
+
+        $headers = [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="cosmas_audit_log_' . now()->format('Ymd_His') . '.csv"',
+            'Cache-Control'       => 'no-store, no-cache',
+        ];
+
+        $callback = function () use ($inspections) {
+            $handle = fopen('php://output', 'w');
+
+            // CSV header row
+            fputcsv($handle, [
+                'ID', 'Pass/Fail', 'Defect Type', 'Confidence (%)',
+                'Instrument Class', 'YOLOv8 Confidence (%)',
+                'Regulatory Note', 'Inspector (User ID)', 'Created At',
+            ]);
+
+            foreach ($inspections as $row) {
+                $conf     = $row->confidence
+                    ? round($row->confidence * ($row->confidence <= 1 ? 100 : 1), 1)
+                    : '';
+                $yoloConf = $row->yolo_confidence
+                    ? round($row->yolo_confidence * ($row->yolo_confidence <= 1 ? 100 : 1), 1)
+                    : '';
+
+                fputcsv($handle, [
+                    $row->id,
+                    $row->pass_fail ?? '',
+                    $row->defect_type ?? '',
+                    $conf,
+                    $row->instrument_class ?? '',
+                    $yoloConf,
+                    $row->regulatory_note ?? '',
+                    $row->user_id ?? '',
+                    $row->created_at ? $row->created_at->toIso8601String() : '',
+                ]);
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
 }
