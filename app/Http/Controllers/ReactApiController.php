@@ -253,6 +253,7 @@ class ReactApiController extends Controller
     }
 
 
+
     private function normaliseDefectName(string $raw): string
     {
         $lower    = strtolower(trim($raw));
@@ -274,6 +275,7 @@ class ReactApiController extends Controller
             default => $stripped ?: $lower,
         };
     }
+
 
 
     private function generateInstrumentId(int $id): string
