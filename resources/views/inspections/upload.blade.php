@@ -80,26 +80,31 @@
 
                 <div class="grid grid-cols-3 gap-4">
                     @foreach([
-                        ['label' => 'Surface Corrosion', 'desc' => 'Rust on instrument body', 'color' => 'red', 'url' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Rust_on_iron.jpg/320px-Rust_on_iron.jpg'],
-                        ['label' => 'Surface Scratch', 'desc' => 'Linear scratch defect', 'color' => 'yellow', 'url' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/NEU_scratches_sample.jpg/320px-NEU_scratches_sample.jpg'],
-                        ['label' => 'Clean Instrument', 'desc' => 'Conforming — no defect', 'color' => 'green', 'url' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png'],
+                        ['type' => 'corrosion', 'label' => 'Surface Corrosion', 'desc' => 'Rust / oxidation on metal body', 'color' => 'red',    'icon' => '🔴', 'expect' => 'Expect: FAIL'],
+                        ['type' => 'scratch',   'label' => 'Linear Scratch',    'desc' => 'Surface scratch defect',         'color' => 'yellow', 'icon' => '🟡', 'expect' => 'Expect: FAIL'],
+                        ['type' => 'clean',     'label' => 'Clean Instrument',  'desc' => 'Surgical forceps — conforming',  'color' => 'green',  'icon' => '✅', 'expect' => 'Expect: PASS'],
                     ] as $demo)
-                        <div class="bg-white rounded-xl shadow p-4 cursor-pointer hover:shadow-md hover:border-blue-300 border-2 border-transparent transition demo-card"
-                             data-url="{{ $demo['url'] }}">
-                            <div class="h-24 bg-gray-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
-                                <span class="text-3xl">
-                                    @if($demo['color'] === 'red') 🔴
-                                    @elseif($demo['color'] === 'yellow') 🟡
-                                    @else ✅
-                                    @endif
+                        <a href="{{ route('demo', ['type' => $demo['type']]) }}"
+                           class="block bg-white rounded-xl shadow p-4 hover:shadow-lg hover:border-blue-400 border-2 border-transparent transition group">
+                            <div class="h-24 rounded-lg mb-3 flex flex-col items-center justify-center
+                                @if($demo['color'] === 'red') bg-red-50
+                                @elseif($demo['color'] === 'yellow') bg-yellow-50
+                                @else bg-green-50 @endif">
+                                <span class="text-3xl mb-1">{{ $demo['icon'] }}</span>
+                                <span class="text-xs font-semibold
+                                    @if($demo['color'] === 'red') text-red-600
+                                    @elseif($demo['color'] === 'yellow') text-yellow-600
+                                    @else text-green-600 @endif">
+                                    {{ $demo['expect'] }}
                                 </span>
                             </div>
-                            <p class="text-sm font-semibold text-gray-800">{{ $demo['label'] }}</p>
-                            <p class="text-xs text-gray-500">{{ $demo['desc'] }}</p>
-                        </div>
+                            <p class="text-sm font-bold text-gray-800 group-hover:text-blue-600">{{ $demo['label'] }}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">{{ $demo['desc'] }}</p>
+                            <p class="text-xs text-blue-500 mt-2 font-medium group-hover:underline">→ Run AI inspection</p>
+                        </a>
                     @endforeach
                 </div>
-                <p class="text-center text-xs text-gray-400 mt-3">Demo images are illustrative — upload your own instrument photo for real analysis</p>
+                <p class="text-center text-xs text-gray-400 mt-3">One click runs the full two-stage AI pipeline — no upload needed</p>
             </div>
 
             <!-- What gets analyzed -->

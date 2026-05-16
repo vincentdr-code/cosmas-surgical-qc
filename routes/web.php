@@ -22,6 +22,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/results/{inspection}', [InspectionController::class, 'results'])->name('inspections.results');
     Route::get('/audit-log', [InspectionController::class, 'auditLog'])->name('inspections.audit-log');
 
+    // ── Demo inspection (one-click, no upload needed) ──────────────────────────
+    Route::get('/demo', [App\Http\Controllers\DemoController::class, 'run'])->name('demo');
+
     // ── ROI Calculator ──────────────────────────────────────────────────────
     Route::get('/roi', [App\Http\Controllers\RoiController::class, 'index'])->name('roi');
 
