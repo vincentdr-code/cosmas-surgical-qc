@@ -61,6 +61,23 @@
                     <p class="mt-1 text-xs text-gray-400">Model certainty, all inspections</p>
                 </div>
 
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 col-span-1 lg:col-span-2">
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Last Inspection</p>
+                    @if($lastInspection)
+                        <p class="mt-2 text-lg font-bold text-gray-900">{{ $lastInspection->created_at->diffForHumans() }}</p>
+                        <p class="mt-1 text-xs text-gray-400">
+                            #{{ $lastInspection->id }} &mdash;
+                            @php $pf = strtoupper($lastInspection->pass_fail ?? ''); @endphp
+                            <span class="{{ $pf === 'PASS' ? 'text-green-600' : ($pf === 'FAIL' ? 'text-red-600' : 'text-yellow-600') }} font-semibold">
+                                {{ $pf }}
+                            </span>
+                        </p>
+                    @else
+                        <p class="mt-2 text-sm text-gray-400">No inspections yet</p>
+                    @endif
+                </div>
+
             </div>
 
             {{-- ── ROI Banner ─────────────────────────────────────────────── --}}
