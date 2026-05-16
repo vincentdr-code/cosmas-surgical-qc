@@ -126,7 +126,7 @@
                                 {{ $inspection->defect_type ?? '—' }}
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-700">
-                                {{ $inspection->confidence ? round($inspection->confidence * ($inspection->confidence <= 1 ? 100 : 1)) . '%' : '—' }}
+                                {{ $inspection->confidence ? round($inspection->confidence) . '%' : '—' }}
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-500">
                                 {{ $inspection->created_at->format('M d, H:i') }}

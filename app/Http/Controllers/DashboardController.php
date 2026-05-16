@@ -19,7 +19,7 @@ class DashboardController extends Controller
         $avgConfidence = Inspection::whereNotNull('confidence')
                             ->where('confidence', '>', 0)
                             ->avg('confidence');
-        $avgConfidence = $avgConfidence ? round($avgConfidence * ($avgConfidence <= 1 ? 100 : 1), 1) : null;
+        $avgConfidence = $avgConfidence ? round($avgConfidence, 1) : null;
 
         return view('dashboard', compact(
             'total', 'passed', 'failed', 'flagged', 'passRate', 'costSaved', 'recent', 'avgConfidence'
