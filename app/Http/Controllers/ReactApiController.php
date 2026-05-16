@@ -252,19 +252,29 @@ class ReactApiController extends Controller
                            'reasoning' => $content, 'regulatory_note' => null, 'recommended_action' => null];
     }
 
+
     private function normaliseDefectName(string $raw): string
     {
-        $lower = strtolower(trim($raw));
+        $lower    = strtolower(trim($raw));
+        // Strip trailing instrument qualifiers: "none — curved scissors 7in" → "none"
+        $stripped = preg_replace('/\s*[—\-\/]\s*.+$/', '', $lower);
         return match(true) {
-            str_contains($lower, 'corrosion')                           => 'corrosion',
-            str_contains($lower, 'scratch') || str_contains($lower, 'burr') => 'scratches',
-            str_contains($lower, 'crack')                               => 'cracks',
-            str_contains($lower, 'porosity')                            => 'porosity',
-            str_contains($lower, 'misalign') || str_contains($lower, 'dimensional') => 'misalignment',
-            str_contains($lower, 'no defect') || $lower === 'none'      => 'none',
-            default                                                      => $lower,
+            str_contains($lower, 'corrosion') || str_contains($lower, 'oxidation')       => 'corrosion',
+            str_contains($lower, 'scratch')   || str_contains($lower, 'burr')            => 'scratches',
+            str_contains($lower, 'crack')     || str_contains($lower, 'fracture')        => 'cracks',
+            str_contains($lower, 'porosity')                                              => 'porosity',
+            str_contains($lower, 'misalign')  || str_contains($lower, 'dimensional')     => 'misalignment',
+            str_contains($lower, 'contamination')                                         => 'contamination',
+            str_contains($lower, 'discolor')  || str_contains($lower, 'discolour')       => 'discoloration',
+            str_contains($lower, 'deformation') || str_contains($lower, 'deform')        => 'deformation',
+            str_contains($lower, 'tip variance') || str_contains($lower, 'finish irreg') => 'surface defect',
+            str_contains($lower, 'misclassif') || str_contains($lower, 'non-surgical')   => 'unclassified',
+            str_contains($lower, 'no defect') || $stripped === 'none'
+                || $lower === 'none' || str_starts_with($lower, 'none')                  => 'none',
+            default => $stripped ?: $lower,
         };
     }
+
 
     private function generateInstrumentId(int $id): string
     {
