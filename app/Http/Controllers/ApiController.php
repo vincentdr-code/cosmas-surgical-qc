@@ -13,6 +13,28 @@ class ApiController extends Controller
      * Public aggregate metrics. No PII — safe for external consumers.
      * Demonstrates scalability: any ERP, MES, or BI tool can pull live QC data.
      */
+
+    /**
+     * GET /api/v1/health
+     * System health check — for monitoring and uptime verification.
+     */
+    public function health(): JsonResponse
+    {
+        $dbOk = true;
+        try { \DB::connection()->getPdo(); } catch (\Exception $e) { $dbOk = false; }
+
+        return response()->json([
+            'status'     => $dbOk ? 'ok' : 'degraded',
+            'version'    => '1.0',
+            'timestamp'  => now()->toIso8601String(),
+            'services'   => [
+                'database'    => $dbOk ? 'up' : 'down',
+                'yolo_model'  => 'yolov8s_defect_detector (mAP50=0.764)',
+                'claude_model' => 'claude-sonnet-4-6',
+            ],
+        ], $dbOk ? 200 : 503);
+    }
+
     public function stats(): JsonResponse
     {
         $total   = Inspection::count();

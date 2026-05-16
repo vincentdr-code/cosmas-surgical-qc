@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')
     ->middleware(['throttle:60,1'])  // 60 requests per minute per IP
     ->group(function () {
+        Route::get('/health',      [ApiController::class, 'health'])->name('api.health');
         Route::get('/stats',       [ApiController::class, 'stats'])->name('api.stats');
         Route::get('/inspections', [ApiController::class, 'inspections'])->name('api.inspections');
     });
