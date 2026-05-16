@@ -1,25 +1,18 @@
 <?php
 
+use App\Http\Controllers\ApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\InspectionController;
 
-Route::prefix('inspections')->group(function () {
-    // Upload and analyze image
-    Route::post('/', [InspectionController::class, 'store'])->name('api.inspections.store');
-    
-    // Get specific inspection
-    Route::get('/{inspection}', [InspectionController::class, 'show'])->name('api.inspections.show');
-    
-    // List all inspections with filters and pagination
-    Route::get('/', [InspectionController::class, 'index'])->name('api.inspections.index');
-});
+/*
+|--------------------------------------------------------------------------
+| API Routes — Cosmas Sentry
+|--------------------------------------------------------------------------
+| Public aggregate endpoints (no PII). Auth-protected endpoints use
+| sanctum middleware and are prefixed /api/v1/secure/.
+*/
 
-// Health check
-Route::get('/health', function () {
-    return response()->json([
-        'status' => 'ok',
-        'timestamp' => now()->toIso8601String(),
-        'service' => 'Cosmas API v1.0',
-    ]);
+Route::prefix('v1')->group(function () {
+    Route::get('/stats',        [ApiController::class, 'stats'])->name('api.stats');
+    Route::get('/inspections',  [ApiController::class, 'inspections'])->name('api.inspections');
 });
