@@ -45,3 +45,9 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+// Settings — confidence threshold
+Route::middleware(['auth'])->group(function () {
+    Route::get('/settings/threshold',  [App\Http\Controllers\SettingsController::class, 'edit'])->name('settings.threshold');
+    Route::post('/settings/threshold', [App\Http\Controllers\SettingsController::class, 'update'])->name('settings.threshold.update');
+});
