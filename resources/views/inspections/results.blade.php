@@ -70,7 +70,7 @@
                     </tr>
                     <tr>
                         <td style="color:#8A9BAE; padding:8px 0 !important; border:none !important;">Image File</td>
-                        <td style="padding:8px 0 !important; border:none !important; color:#8A9BAE; font-size:11px;">{{ $inspection->image_filename ?? '—' }}</td>
+                        <td style="padding:8px 0 !important; border:none !important; color:#8A9BAE; font-size:11px;">{{ $inspection->image_path ?? '—' }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -78,23 +78,23 @@
 
         <div class="tac-card">
             <div class="tac-label" style="margin-bottom:16px;">[ AI REASONING ]</div>
-            <div style="background:#060F1E; border:1px solid rgba(201,150,62,0.12); padding:16px; font-size:12px; color:#8A9BAE; line-height:1.8; max-height:220px; overflow-y:auto; white-space:pre-wrap; word-break:break-word;">{{ $inspection->ai_reasoning ?? $inspection->notes ?? 'No reasoning logged for this inspection.' }}</div>
+            <div style="background:#060F1E; border:1px solid rgba(201,150,62,0.12); padding:16px; font-size:12px; color:#8A9BAE; line-height:1.8; max-height:220px; overflow-y:auto; white-space:pre-wrap; word-break:break-word;">{{ $inspection->claude_reasoning ?? $inspection->notes ?? 'No reasoning logged for this inspection.' }}</div>
         </div>
 
     </div>
 
     {{-- Image (if stored) --}}
-    @if(!empty($inspection->image_filename) && file_exists(storage_path('app/public/inspections/' . $inspection->image_filename)))
+    @if(!empty($inspection->image_path) && file_exists(storage_path('app/public/' . $inspection->image_path)))
     <div class="tac-card" style="margin-bottom:1px; text-align:center;">
         <div class="tac-label" style="margin-bottom:16px; text-align:left;">[ INSTRUMENT IMAGE ]</div>
-        <img src="{{ asset('storage/inspections/' . $inspection->image_filename) }}"
+        <img src="{{ asset('storage/' . $inspection->image_path) }}"
              alt="Inspection image"
              style="max-height:400px; max-width:100%; object-fit:contain; border:1px solid rgba(201,150,62,0.2);">
     </div>
     @endif
 
     {{-- Notes --}}
-    @if(!empty($inspection->notes) && $inspection->notes !== $inspection->ai_reasoning)
+    @if(!empty($inspection->notes) && $inspection->notes !== $inspection->claude_reasoning)
     <div class="tac-card" style="margin-bottom:1px;">
         <div class="tac-label" style="margin-bottom:12px;">[ OPERATOR NOTES ]</div>
         <div style="color:#8A9BAE; font-size:12px; line-height:1.7;">{{ $inspection->notes }}</div>
