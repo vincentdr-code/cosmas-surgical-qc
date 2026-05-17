@@ -1,87 +1,107 @@
-@extends('layouts.app')
-@section('content')
-<div class="container mx-auto px-4 py-8">
-
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <h1 class="text-3xl font-bold">Inspection Audit Log</h1>
-        <div class="flex items-center gap-3">
-            {{-- Status filter --}}
-            <form method="GET" action="{{ route('inspections.audit-log') }}" class="flex items-center gap-2">
-                <select name="status" onchange="this.form.submit()"
-                        class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">All Statuses</option>
-                    <option value="PASS"    {{ request('status') === 'PASS'    ? 'selected' : '' }}>PASS</option>
-                    <option value="FAIL"    {{ request('status') === 'FAIL'    ? 'selected' : '' }}>FAIL</option>
-                    <option value="FLAGGED" {{ request('status') === 'FLAGGED' ? 'selected' : '' }}>FLAGGED</option>
-                </select>
-            </form>
-            {{-- CSV Export --}}
+<x-app-layout>
+    <x-slot name="header">
+        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; color:#8A9BAE; letter-spacing:0.12em; text-transform:uppercase;">
+            [ AUDIT LOG — FDA 21 CFR PART 820 ]
+        </span>
+        <div style="display:flex; gap:12px; align-items:center;">
+            @if(Route::has('inspections.export-csv'))
             <a href="{{ route('inspections.export-csv') }}"
-               class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                Export CSV
+               style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:0.1em; color:#C9963E; border:1px solid rgba(201,150,62,0.35); padding:6px 14px; text-decoration:none; text-transform:uppercase;">
+                EXPORT CSV
             </a>
+            @endif
+            <a href="{{ route('inspections.upload') }}"
+               style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:0.1em; color:#060F1E; background:#C9963E; padding:6px 14px; text-decoration:none; text-transform:uppercase;">
+                + INSPECT
+            </a>
+        </div>
+    </x-slot>
+
+    {{-- Stats Strip --}}
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:rgba(201,150,62,0.1); margin-bottom:1px;">
+        <div class="tac-card">
+            <div class="tac-label">Total Records</div>
+            <div class="tac-value">{{ $inspections->total() ?? $inspections->count() }}</div>
+        </div>
+        <div class="tac-card">
+            <div class="tac-label">Last Entry</div>
+            <div class="tac-value" style="font-size:16px; color:#8A9BAE;">
+                {{ $inspections->first() ? $inspections->first()->created_at->format('M d · H:i') : '—' }}
+            </div>
+        </div>
+        <div class="tac-card">
+            <div class="tac-label">Compliance</div>
+            <div class="tac-value" style="color:#2ECC71; font-size:16px;">21 CFR 820</div>
+        </div>
+        <div class="tac-card">
+            <div class="tac-label">Record Type</div>
+            <div class="tac-value" style="font-size:16px; color:#C9963E;">APPEND-ONLY</div>
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-        @if ($inspections->count() > 0)
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-100 border-b">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">ID</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Defect Type</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Confidence</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Analyzed</th>
-                            <th class="px-6 py-3 text-center text-sm font-semibold text-gray-700">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y">
-                        @foreach ($inspections as $inspection)
-                            <tr class="hover:bg-gray-50 transition">
-                                <td class="px-6 py-4 text-sm font-mono text-gray-600">#{{ $inspection->id }}</td>
-                                <td class="px-6 py-4">
-                                    @php $pf = strtoupper($inspection->pass_fail ?? ''); @endphp
-                                    @if ($pf === 'PASS')
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">✓ PASS</span>
-                                    @elseif ($pf === 'FAIL')
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">✗ FAIL</span>
-                                    @elseif ($pf === 'FLAGGED')
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">⚑ FLAGGED</span>
-                                    @else
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">{{ $inspection->pass_fail }}</span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4 text-sm text-gray-700">{{ $inspection->defect_type ?? '—' }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-700">
-                                    {{ $inspection->confidence ? round($inspection->confidence) . '%' : '—' }}
-                                </td>
-                                <td class="px-6 py-4 text-sm text-gray-600">{{ $inspection->updated_at->format('M d, Y H:i') }}</td>
-                                <td class="px-6 py-4 text-center">
-                                    <a href="{{ route('inspections.results', $inspection->id) }}"
-                                       class="text-blue-600 hover:text-blue-800 font-medium text-sm">View</a>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-            <div class="px-6 py-4 border-t">{{ $inspections->links() }}</div>
+    {{-- Table --}}
+    <div class="tac-card" style="padding:0; overflow:hidden;">
+        @if($inspections->count())
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:60px;">ID</th>
+                    <th style="width:100px;">STATUS</th>
+                    <th>DEFECT / INSTRUMENT</th>
+                    <th style="width:80px;">CONF.</th>
+                    <th style="width:130px;">OPERATOR</th>
+                    <th style="width:150px;">TIMESTAMP</th>
+                    <th style="width:60px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($inspections as $insp)
+                @php $pf = strtoupper($insp->pass_fail ?? ''); @endphp
+                <tr>
+                    <td style="color:#8A9BAE; font-size:11px;">#{{ $insp->id }}</td>
+                    <td>
+                        @if($pf === 'PASS')   <span class="badge-pass">✓ PASS</span>
+                        @elseif($pf === 'FAIL') <span class="badge-fail">✗ FAIL</span>
+                        @elseif($pf === 'FLAGGED') <span class="badge-flag">⚑ FLAG</span>
+                        @else <span class="badge-grey">{{ $insp->pass_fail }}</span>
+                        @endif
+                    </td>
+                    <td style="color:#8A9BAE; font-size:12px; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                        {{ $insp->defect_type ?? '—' }}
+                    </td>
+                    <td style="color:#4A7C9E; font-size:12px;">
+                        {{ $insp->confidence ? round($insp->confidence) . '%' : '—' }}
+                    </td>
+                    <td style="color:#8A9BAE; font-size:11px;">
+                        {{ $insp->operator_id ?? '—' }}
+                    </td>
+                    <td style="color:#8A9BAE; font-size:11px;">
+                        {{ $insp->created_at->format('Y-m-d H:i:s') }}
+                    </td>
+                    <td>
+                        <a href="{{ route('inspections.results', $insp->id) }}"
+                           style="color:#C9963E; text-decoration:none; font-size:10px; font-weight:700; letter-spacing:0.08em;">
+                            VIEW
+                        </a>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+
+        {{-- Pagination --}}
+        @if(method_exists($inspections, 'links'))
+        <div style="padding:16px 20px; border-top:1px solid rgba(201,150,62,0.15);">
+            {{ $inspections->links() }}
+        </div>
+        @endif
+
         @else
-            <div class="p-12 text-center">
-                <h3 class="mt-2 text-lg font-medium text-gray-900">No inspections yet</h3>
-                <p class="mt-1 text-gray-600">Start by uploading an instrument image for analysis.</p>
-                <a href="{{ route('inspections.upload') }}"
-                   class="mt-4 inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition">
-                    Upload Image
-                </a>
-            </div>
+        <div style="padding:48px; text-align:center; color:#8A9BAE;">
+            <div style="font-size:32px; opacity:0.2; margin-bottom:12px;">◈</div>
+            <div>No inspection records yet.</div>
+        </div>
         @endif
     </div>
-</div>
-@endsection
+
+</x-app-layout>
