@@ -121,6 +121,7 @@ class InspectionController extends Controller
         $mimeType    = mime_content_type($imagePath);
         // Prompt is now managed by InspectionPromptService (versioned for audit trail)
 
+        $yoloContext = $this->buildYoloContext($yoloResult);
         $prompt = <<<PROMPT
 You are Cosmas Sentry, an AI quality-control assistant for surgical instrument manufacturing under ISO 7153-1 and ASTM F899 standards.
 
