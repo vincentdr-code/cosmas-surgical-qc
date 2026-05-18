@@ -113,6 +113,7 @@ class ReactApiController extends Controller
             'pass_fail'          => strtoupper($i->pass_fail ?? 'FAIL'),
             'processing_time_ms' => round((float) ($i->inference_ms ?? 0), 1),
             'bounding_box'       => $this->parseBoundingBox($i->bounding_box),
+            'id'                 => $i->id,
         ])->values()->all();
 
         return $this->cors(response()->json([
@@ -155,7 +156,7 @@ class ReactApiController extends Controller
         $costMatrix = $result['cost_matrix'] ?? null;
 
         // Persist with full orchestrator output
-        Inspection::create([
+        $savedInspection = Inspection::create([
             'instrument_id'        => $instrId,
             'operator_id'          => $operatorId,
             'user_id'              => 1,
@@ -205,6 +206,7 @@ class ReactApiController extends Controller
             'composite_risk_score' => $result['composite_risk_score'] ?? null,
             'reasoning'            => $result['reasoning']            ?? '',
             'all_detections'       => $safeDetections,
+            'inspection_id'        => $savedInspection->id,
         ]));
     }
 

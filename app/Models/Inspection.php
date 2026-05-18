@@ -9,18 +9,25 @@ class Inspection extends Model
 {
     protected $fillable = [
         'user_id',
+        'instrument_id',
+        'operator_id',
         'image_path',
         'defect_type',
+        'instrument_class',
         'confidence',
         'pass_fail',
         'claude_reasoning',
+        'regulatory_note',
+        'recommended_action',
         'bounding_box',
-    
         'composite_risk_score',
         'risk_level',
         'agent_steps',
         'cost_matrix',
-        'instrument_class',
+        'yolo_detections',
+        'yolo_count',
+        'yolo_model',
+        'inference_ms',
     ];
 
     protected $casts = [
