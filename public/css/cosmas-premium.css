@@ -1,0 +1,482 @@
+/* ═══════════════════════════════════════════════════════════════════
+   COSMAS · SENTRY — Premium Design System 2026
+   Dark Aurora Glass · Metallic Gold · Chrome Accents
+   Inspired by: Glassmorphism 2.0 · Spotify Chrome aesthetic
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── GOOGLE FONTS UPGRADE ────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=IBM+Plex+Mono:wght@300;400;600;700&display=swap');
+
+/* ── DESIGN TOKENS ───────────────────────────────────────────────── */
+:root {
+    /* Deeper, richer dark base */
+    --bg:           #05090f;
+    --navy:         #080f1c;
+    --card:         #0b1322;
+    --card-glass:   rgba(10, 16, 28, 0.6);
+
+    /* Metallic gold system */
+    --gold:         #c9963e;
+    --gold-bright:  #f5d078;
+    --gold-deep:    #8a5c14;
+    --gold-dim:     rgba(201, 150, 62, 0.2);
+    --gold-glow:    rgba(201, 150, 62, 0.12);
+    --gold-metal:   linear-gradient(135deg, #ffe599 0%, #d4a030 25%, #8a5c14 50%, #c9963e 72%, #f5d078 100%);
+    --gold-shine:   linear-gradient(180deg, #f5d48a 0%, #c9963e 45%, #7a4a10 100%);
+
+    /* Text */
+    --text:         #dde6f0;
+    --muted:        #5a6f87;
+    --muted-bright: #7a90a8;
+
+    /* Accents */
+    --steel:        #7fb3d3;
+    --steel-dim:    rgba(127, 179, 211, 0.15);
+
+    /* Status */
+    --pass:         #3dbb63;
+    --fail:         #d44040;
+    --flag:         #e8960e;
+
+    /* Glass effect */
+    --glass-blur:    14px;
+    --glass-sat:     160%;
+    --glass-border:  rgba(201, 150, 62, 0.22);
+    --glass-border-top: rgba(201, 150, 62, 0.45);
+    --glass-shadow:  0 8px 32px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.04) inset;
+
+    /* Font */
+    --font: 'Share Tech Mono', 'IBM Plex Mono', 'Courier New', monospace;
+
+    /* Transitions */
+    --transition: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── GLOBAL RESET & BASE ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Aurora background layers */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 70% 55% at 15% 25%, rgba(201,150,62,0.055) 0%, transparent 65%),
+        radial-gradient(ellipse 55% 45% at 85% 75%, rgba(127,179,211,0.035) 0%, transparent 65%),
+        radial-gradient(ellipse 80% 60% at 50% 100%, rgba(201,150,62,0.025) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 80% at 90% 20%, rgba(76,175,110,0.02) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Noise grain overlay for material depth */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    background-size: 192px 192px;
+    opacity: 0.028;
+    pointer-events: none;
+    z-index: 1;
+    mix-blend-mode: overlay;
+}
+
+/* All content sits above aurora + grain */
+body > * { position: relative; z-index: 2; }
+
+/* ── NAVIGATION — Chrome Glass ───────────────────────────────────── */
+nav,
+header[class*="nav"],
+.nav-wrapper,
+nav.bg-slate-900,
+nav.tac-nav {
+    background: rgba(5, 9, 15, 0.88) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-bottom: 1px solid var(--glass-border) !important;
+    box-shadow:
+        0 1px 0 rgba(255,255,255,0.04),
+        0 4px 32px rgba(0,0,0,0.6) !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+}
+
+/* Nav links */
+nav a, .tac-nav a {
+    transition: color var(--transition), opacity var(--transition) !important;
+    letter-spacing: 0.13em !important;
+}
+nav a:hover { opacity: 0.85 !important; }
+
+/* ── CARDS — Glassmorphism 2.0 ───────────────────────────────────── */
+/* Override the flat --card backgrounds */
+[style*="background:var(--card)"],
+[style*="background: var(--card)"] {
+    background: var(--card-glass) !important;
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) !important;
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) !important;
+    border: 1px solid var(--glass-border) !important;
+    box-shadow: var(--glass-shadow) !important;
+    transform: translateZ(0);
+    transition: box-shadow var(--transition), border-color var(--transition) !important;
+}
+[style*="background:var(--card)"]:hover,
+[style*="background: var(--card)"]:hover {
+    border-color: rgba(201,150,62,0.35) !important;
+    box-shadow:
+        0 12px 48px rgba(0,0,0,0.55),
+        0 0 0 0.5px rgba(201,150,62,0.15) inset,
+        0 1px 0 rgba(255,255,255,0.06) inset !important;
+}
+
+/* Navy inner blocks get glass treatment too */
+[style*="background:var(--navy)"],
+[style*="background: var(--navy)"] {
+    background: rgba(8, 15, 28, 0.7) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* ── GOLD — Metallic Chrome ──────────────────────────────────────── */
+/* Verdict banner top border gets chrome glow */
+[style*="border-top:3px solid"],
+[style*="border-top: 3px solid"] {
+    box-shadow: 0 -2px 20px rgba(201,150,62,0.18) !important;
+}
+
+/* Large metric numbers get metallic treatment */
+[style*="font-size:36px"],
+[style*="font-size: 36px"] {
+    background: var(--gold-shine) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    filter: drop-shadow(0 2px 8px rgba(201,150,62,0.35)) !important;
+}
+
+/* Gold label text */
+[style*="color:var(--gold)"],
+[style*="color: var(--gold)"] {
+    text-shadow: 0 0 20px rgba(201,150,62,0.3) !important;
+}
+
+/* ── VERDICT BADGE — Premium Pills ───────────────────────────────── */
+/* FAIL badge */
+[style*="color:var(--fail)"][style*="font-weight:700"],
+.verdict-fail {
+    text-shadow: 0 0 24px rgba(212,64,64,0.5) !important;
+}
+/* PASS badge */
+[style*="color:var(--pass)"][style*="font-weight:700"] {
+    text-shadow: 0 0 24px rgba(61,187,99,0.5) !important;
+}
+/* FLAG badge */
+[style*="color:var(--flag)"][style*="font-weight:700"] {
+    text-shadow: 0 0 24px rgba(232,150,14,0.5) !important;
+}
+
+/* ── BUTTONS — Chrome CTA ────────────────────────────────────────── */
+a[style*="background:var(--gold)"],
+a[style*="background: var(--gold)"],
+button[style*="background:var(--gold)"],
+div[style*="background:var(--gold)"] {
+    background: linear-gradient(135deg, #e8a832 0%, #c9963e 40%, #a07020 70%, #d4a843 100%) !important;
+    box-shadow:
+        0 4px 16px rgba(201,150,62,0.35),
+        0 1px 0 rgba(255,255,255,0.2) inset !important;
+    border: none !important;
+    transition: transform var(--transition), box-shadow var(--transition), filter var(--transition) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+a[style*="background:var(--gold)"]:hover,
+a[style*="background: var(--gold)"]:hover {
+    transform: translateY(-1px) !important;
+    box-shadow:
+        0 8px 28px rgba(201,150,62,0.45),
+        0 1px 0 rgba(255,255,255,0.25) inset !important;
+    filter: brightness(1.08) !important;
+}
+/* Shine sweep animation */
+a[style*="background:var(--gold)"]::after,
+a[style*="background: var(--gold)"]::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+    transition: left 0.5s ease;
+}
+a[style*="background:var(--gold)"]:hover::after,
+a[style*="background: var(--gold)"]:hover::after {
+    left: 150%;
+}
+
+/* Outline buttons */
+a[style*="border:1px solid var(--gold"],
+a[style*="border: 1px solid var(--gold"] {
+    background: transparent !important;
+    border: 1px solid rgba(201,150,62,0.35) !important;
+    box-shadow: 0 0 12px rgba(201,150,62,0.06) inset !important;
+    transition: border-color var(--transition), box-shadow var(--transition), background var(--transition) !important;
+}
+a[style*="border:1px solid var(--gold"]:hover,
+a[style*="border: 1px solid var(--gold"]:hover {
+    border-color: rgba(201,150,62,0.65) !important;
+    box-shadow:
+        0 0 20px rgba(201,150,62,0.12) inset,
+        0 0 12px rgba(201,150,62,0.08) !important;
+    background: rgba(201,150,62,0.06) !important;
+}
+
+/* ── TABLE ROWS — Hover Glow ─────────────────────────────────────── */
+tr {
+    transition: background var(--transition) !important;
+}
+tr:hover td {
+    background: rgba(201,150,62,0.04) !important;
+}
+
+/* ── STATUS BADGES ───────────────────────────────────────────────── */
+/* FAIL badge */
+[style*="background:var(--fail)"],
+[style*="background: var(--fail)"] {
+    background: rgba(212,64,64,0.15) !important;
+    border: 1px solid rgba(212,64,64,0.4) !important;
+    box-shadow: 0 0 12px rgba(212,64,64,0.15) !important;
+    backdrop-filter: blur(4px) !important;
+    color: #f07070 !important;
+}
+/* PASS badge */
+[style*="background:var(--pass)"],
+[style*="background: var(--pass)"] {
+    background: rgba(61,187,99,0.12) !important;
+    border: 1px solid rgba(61,187,99,0.35) !important;
+    box-shadow: 0 0 12px rgba(61,187,99,0.12) !important;
+    backdrop-filter: blur(4px) !important;
+    color: #6ee094 !important;
+}
+/* FLAG badge */
+[style*="background:var(--flag)"],
+[style*="background: var(--flag)"] {
+    background: rgba(232,150,14,0.12) !important;
+    border: 1px solid rgba(232,150,14,0.35) !important;
+    box-shadow: 0 0 12px rgba(232,150,14,0.12) !important;
+    backdrop-filter: blur(4px) !important;
+    color: #f0b030 !important;
+}
+
+/* ── AGENT CHAIN — Timeline Nodes ────────────────────────────────── */
+/* Icon nodes in timeline */
+[style*="border:1px solid var(--gold)"][style*="width:28px"] {
+    background: rgba(201,150,62,0.1) !important;
+    box-shadow:
+        0 0 0 1px rgba(201,150,62,0.5),
+        0 0 16px rgba(201,150,62,0.2) !important;
+    transition: box-shadow var(--transition) !important;
+}
+[style*="border:1px solid var(--gold)"][style*="width:28px"]:hover {
+    box-shadow:
+        0 0 0 1px rgba(201,150,62,0.8),
+        0 0 24px rgba(201,150,62,0.35) !important;
+}
+
+/* ── FORMULA DISPLAY — Code Blocks ───────────────────────────────── */
+[style*="background:var(--navy)"][style*="font-family"] {
+    border-left: 2px solid var(--gold) !important;
+    box-shadow:
+        inset 0 0 30px rgba(201,150,62,0.04),
+        0 2px 8px rgba(0,0,0,0.3) !important;
+}
+
+/* ── KPI CARDS — Data Metrics ────────────────────────────────────── */
+/* The 6-card grid on dashboard */
+.tac-label {
+    letter-spacing: 0.18em !important;
+    opacity: 0.7 !important;
+}
+
+/* ── INPUT / SLIDER — Controls ───────────────────────────────────── */
+input[type="range"] {
+    accent-color: var(--gold) !important;
+    filter: drop-shadow(0 0 4px rgba(201,150,62,0.3)) !important;
+}
+
+/* ── SCROLLBAR — Subtle Chrome ───────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb {
+    background: rgba(201,150,62,0.25);
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(201,150,62,0.45); }
+
+/* ── SELECTION ───────────────────────────────────────────────────── */
+::selection {
+    background: rgba(201,150,62,0.25);
+    color: var(--text);
+}
+
+/* ── LINKS ───────────────────────────────────────────────────────── */
+a[style*="color:var(--gold)"],
+a[style*="color: var(--gold)"] {
+    transition: text-shadow var(--transition), opacity var(--transition) !important;
+}
+a[style*="color:var(--gold)"]:hover,
+a[style*="color: var(--gold)"]:hover {
+    text-shadow: 0 0 16px rgba(201,150,62,0.5) !important;
+    opacity: 0.9 !important;
+}
+
+/* ── CHROME HEADER SECTION LABELS ────────────────────────────────── */
+/* The [ SECTION LABEL ] headers */
+[style*="letter-spacing:0.16em"],
+[style*="letter-spacing: 0.16em"] {
+    text-shadow: 0 0 24px rgba(201,150,62,0.25) !important;
+}
+
+/* ── MICRO-ANIMATIONS ────────────────────────────────────────────── */
+@keyframes pulse-gold {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201,150,62,0.3); }
+    50%       { box-shadow: 0 0 0 6px rgba(201,150,62,0); }
+}
+@keyframes shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+@keyframes fadeUp {
+    from { opacity:0; transform:translateY(10px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+
+/* Page content fade-in */
+main > div, .main-content {
+    animation: fadeUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) both !important;
+}
+
+/* ── CHROME SPARKLE — Key Numbers ────────────────────────────────── */
+/* Applied to the verdict/confidence numbers */
+[style*="font-size:36px; font-weight:700"],
+[style*="font-size: 36px; font-weight: 700"] {
+    position: relative !important;
+}
+
+/* ── DASHBOARD CHART CANVAS ──────────────────────────────────────── */
+canvas {
+    filter: drop-shadow(0 0 8px rgba(201,150,62,0.08)) !important;
+}
+
+/* ── INSPECT PANEL — React SPA overrides ────────────────────────── */
+/* Nav strip in React SPA */
+[style*="NAVIGATE"] {
+    background: rgba(5, 9, 15, 0.92) !important;
+    backdrop-filter: blur(16px) !important;
+    border-bottom: 1px solid rgba(201,150,62,0.15) !important;
+}
+
+/* ── RESULTS PAGE REASONING CARDS ────────────────────────────────── */
+/* Step cards in reasoning section */
+[style*="background:var(--navy)"][style*="border-left:2px solid var(--gold"] {
+    border-left-color: rgba(201,150,62,0.6) !important;
+    box-shadow: inset 4px 0 20px rgba(201,150,62,0.04) !important;
+    transition: border-left-color var(--transition), box-shadow var(--transition) !important;
+}
+[style*="background:var(--navy)"][style*="border-left:2px solid var(--gold"]:hover {
+    border-left-color: rgba(201,150,62,0.9) !important;
+    box-shadow: inset 4px 0 30px rgba(201,150,62,0.08) !important;
+}
+
+/* ── AUDIT LOG — Table Chrome ────────────────────────────────────── */
+table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+
+/* ── SETTINGS PAGE ───────────────────────────────────────────────── */
+/* FDA Note box */
+[style*="border:1px solid"][style*="padding"] pre,
+[style*="border: 1px solid"][style*="padding"] {
+    backdrop-filter: blur(8px) !important;
+}
+
+/* ── FOCUS STATES — Accessibility ────────────────────────────────── */
+a:focus-visible, button:focus-visible {
+    outline: 2px solid rgba(201,150,62,0.6) !important;
+    outline-offset: 2px !important;
+}
+
+/* ── REDUCED TRANSPARENCY FALLBACK ───────────────────────────────── */
+@media (prefers-reduced-transparency: reduce) {
+    :root {
+        --card-glass: var(--card);
+        --glass-blur: 0px;
+    }
+    body::before, body::after { display: none; }
+    [style*="backdrop-filter"] { backdrop-filter: none !important; }
+}
+
+/* ── CHROME BORDER SHINE — Hero Elements ────────────────────────── */
+/* Top-border accent glow on verdict banner */
+[style*="border-top:3px solid var(--fail)"] {
+    border-top-color: #d44040 !important;
+    box-shadow:
+        0 -4px 28px rgba(212,64,64,0.25),
+        var(--glass-shadow) !important;
+}
+[style*="border-top:3px solid var(--pass)"] {
+    border-top-color: #3dbb63 !important;
+    box-shadow:
+        0 -4px 28px rgba(61,187,99,0.2),
+        var(--glass-shadow) !important;
+}
+[style*="border-top:3px solid var(--flag)"] {
+    border-top-color: #e8960e !important;
+    box-shadow:
+        0 -4px 28px rgba(232,150,14,0.2),
+        var(--glass-shadow) !important;
+}
+
+/* ── UTILITY CLASSES (for new pages) ────────────────────────────── */
+.glass {
+    background: var(--card-glass) !important;
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) !important;
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-top: 1px solid var(--glass-border-top) !important;
+    box-shadow: var(--glass-shadow) !important;
+}
+.gold-text {
+    background: var(--gold-shine) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+.glow-gold { text-shadow: 0 0 20px rgba(201,150,62,0.4) !important; }
+.glow-fail { text-shadow: 0 0 20px rgba(212,64,64,0.4) !important; }
+.glow-pass { text-shadow: 0 0 20px rgba(61,187,99,0.4) !important; }
+.chrome-btn {
+    background: linear-gradient(135deg, #e8a832 0%, #c9963e 40%, #a07020 70%, #d4a843 100%) !important;
+    box-shadow: 0 4px 16px rgba(201,150,62,0.35), 0 1px 0 rgba(255,255,255,0.2) inset !important;
+    transition: transform var(--transition), filter var(--transition) !important;
+}
+.chrome-btn:hover {
+    transform: translateY(-1px) !important;
+    filter: brightness(1.08) !important;
+}

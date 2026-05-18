@@ -57,13 +57,13 @@
         ];
     @endphp
 
-    <div style="display:grid; grid-template-columns:1fr 340px; gap:20px; align-items:start;">
+    <div style="display:grid; grid-template-columns:1fr 320px; gap:16px; align-items:start;">
 
         {{-- ── LEFT COLUMN ──────────────────────────────────────────────── --}}
-        <div style="display:flex; flex-direction:column; gap:16px;">
+        <div style="display:flex; flex-direction:column; gap:12px;">
 
             {{-- VERDICT BANNER --}}
-            <div style="background:var(--card); border:1px solid var(--gold-dim); border-top:3px solid {{ $verdictColor }}; padding:24px 28px; display:flex; align-items:center; justify-content:space-between;">
+            <div style="background:var(--card); border:1px solid var(--gold-dim); border-top:3px solid {{ $verdictColor }}; padding:16px 22px; display:flex; align-items:center; justify-content:space-between;">
                 <div>
                     <div class="tac-label" style="margin-bottom:6px;">FINAL VERDICT</div>
                     <div style="font-size:36px; font-weight:700; color:{{ $verdictColor }}; letter-spacing:0.06em; line-height:1;">
@@ -203,29 +203,58 @@
 
             {{-- CLAUDE REASONING --}}
             @if($inspection->claude_reasoning)
+            @php
+                $rawReasoning = $inspection->claude_reasoning;
+                // Split on pipe-prefixed STEP markers: "| STEP N —" or "| STEP N -"
+                $reasonParts = [];
+                $segs = preg_split('/\|\s*(?=STEP\s*\d+)/i', $rawReasoning);
+                foreach ($segs as $seg) {
+                    $seg = trim($seg);
+                    if (!$seg) continue;
+                    // Extract "STEP N" label, put everything after "—" as body
+                    if (preg_match('/^(STEP\s*\d+)\s*[—\-]+\s*([\s\S]+)$/i', $seg, $m)) {
+                        $reasonParts[] = ['label' => strtoupper(trim($m[1])), 'text' => trim($m[2])];
+                    } else {
+                        $reasonParts[] = ['label' => null, 'text' => $seg];
+                    }
+                }
+                if (empty($reasonParts)) {
+                    $reasonParts = [['label' => null, 'text' => $rawReasoning]];
+                }
+            @endphp
             <div style="background:var(--card); border:1px solid var(--gold-dim);">
-                <div style="padding:12px 20px; border-bottom:1px solid var(--gold-dim);">
+                <div style="padding:10px 20px; border-bottom:1px solid var(--gold-dim); display:flex; align-items:center; justify-content:space-between;">
                     <span style="font-size:9px; letter-spacing:0.16em; color:var(--gold); font-weight:700; text-transform:uppercase;">[ CLAUDE REASONING ]</span>
+                    <span style="font-size:9px; color:var(--muted);">{{ count($reasonParts) }} section{{ count($reasonParts) !== 1 ? 's' : '' }}</span>
                 </div>
-                <div style="padding:16px 20px; font-size:12px; color:var(--text); line-height:1.7;">
-                    {{ $inspection->claude_reasoning }}
+                <div style="padding:12px 16px; display:flex; flex-direction:column; gap:6px;">
+                    @foreach($reasonParts as $rp)
+                    <div style="background:var(--navy); border-left:2px solid var(--gold-dim); padding:8px 12px;">
+                        @if($rp['label'])
+                        <div style="font-size:9px; font-weight:700; letter-spacing:0.12em; color:var(--gold); text-transform:uppercase; margin-bottom:4px;">
+                            {{ $rp['label'] }}
+                        </div>
+                        @endif
+                        <div style="font-size:11px; color:var(--text); line-height:1.6;">{{ $rp['text'] }}</div>
+                    </div>
+                    @endforeach
                 </div>
             </div>
             @endif
 
             {{-- RECOMMENDED ACTION + REGULATORY NOTE --}}
             @if($inspection->recommended_action || $inspection->regulatory_note)
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                 @if($inspection->recommended_action)
-                <div style="background:var(--card); border:1px solid var(--gold-dim); padding:16px 20px;">
-                    <div class="tac-label" style="margin-bottom:8px;">RECOMMENDED ACTION</div>
-                    <div style="font-size:12px; color:var(--text);">{{ $inspection->recommended_action }}</div>
+                <div style="background:var(--card); border:1px solid var(--gold-dim); border-left:2px solid var(--pass); padding:12px 14px;">
+                    <div class="tac-label" style="margin-bottom:6px; color:var(--pass);">RECOMMENDED ACTION</div>
+                    <div style="font-size:11px; color:var(--text); line-height:1.5;">{{ $inspection->recommended_action }}</div>
                 </div>
                 @endif
                 @if($inspection->regulatory_note)
-                <div style="background:var(--card); border:1px solid var(--gold-dim); padding:16px 20px;">
-                    <div class="tac-label" style="margin-bottom:8px;">REGULATORY NOTE</div>
-                    <div style="font-size:12px; color:var(--steel);">{{ $inspection->regulatory_note }}</div>
+                <div style="background:var(--card); border:1px solid var(--gold-dim); border-left:2px solid var(--steel); padding:12px 14px;">
+                    <div class="tac-label" style="margin-bottom:6px; color:var(--steel);">REGULATORY NOTE</div>
+                    <div style="font-size:11px; color:var(--muted); line-height:1.5;">{{ $inspection->regulatory_note }}</div>
                 </div>
                 @endif
             </div>
@@ -234,7 +263,7 @@
         </div>
 
         {{-- ── RIGHT COLUMN ─────────────────────────────────────────────── --}}
-        <div style="display:flex; flex-direction:column; gap:16px;">
+        <div style="display:flex; flex-direction:column; gap:12px;">
 
             {{-- INSTRUMENT IMAGE --}}
             <div style="background:var(--card); border:1px solid var(--gold-dim);">
@@ -312,25 +341,24 @@
                     </tr>
                     <tr>
                         <td style="color:var(--muted); padding:4px 0; border:none;">YOLO Model</td>
-                        <td style="color:var(--text); text-align:right; border:none;">{{ ($inspection->yolo_model ? basename($inspection->yolo_model) : 'N/A') ?? 'unavailable' }}</td>
+                        <td style="color:var(--text); text-align:right; border:none; word-break:break-all;">
+                            {{ $inspection->yolo_model ? basename($inspection->yolo_model) : 'unavailable' }}
+                        </td>
                     </tr>
                     <tr>
                         <td style="color:var(--muted); padding:4px 0; border:none;">Analysis Time</td>
                         <td style="color:var(--text); text-align:right; border:none;">
-                            @php
-                                    $ms = $inspection->inference_ms;
-                                @endphp
-                                @if($ms)
-                                    @if($ms >= 60000)
-                                        {{ floor($ms / 60000) }}m {{ round(($ms % 60000) / 1000) }}s
-                                    @elseif($ms >= 1000)
-                                        {{ round($ms / 1000, 1) }}s
-                                    @else
-                                        {{ $ms }}ms
-                                    @endif
+                            @if($inspection->inference_ms)
+                                @if($inspection->inference_ms >= 60000)
+                                    {{ floor($inspection->inference_ms / 60000) }}m {{ round(($inspection->inference_ms % 60000) / 1000) }}s
+                                @elseif($inspection->inference_ms >= 1000)
+                                    {{ round($inspection->inference_ms / 1000, 1) }}s
                                 @else
-                                    &mdash;
+                                    {{ $inspection->inference_ms }}ms
                                 @endif
+                            @else
+                                —
+                            @endif
                         </td>
                     </tr>
                     @if($crs !== null)

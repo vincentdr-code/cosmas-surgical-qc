@@ -25,3 +25,5 @@ Thumbs.db
 cosmas
 cosmas
 cosmas
+*.blade.php.bak
+*.bak

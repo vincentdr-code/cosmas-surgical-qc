@@ -194,6 +194,7 @@
     </style>
 
     @stack('styles')
+    <link rel="stylesheet" href="/css/cosmas-premium.css">
 </head>
 
 <body>

@@ -13,6 +13,12 @@
 
         {{-- Nav Links --}}
         <div style="display:flex; align-items:center; gap:4px;">
+
+            <a href="{{ route('home') }}"
+               style="font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; color:{{ request()->routeIs('home') ? '#C9963E' : '#8A9BAE' }}; text-decoration:none; padding:6px 14px; letter-spacing:0.08em; text-transform:uppercase; border-bottom: {{ request()->routeIs('home') ? '2px solid #C9963E' : '2px solid transparent' }};">
+                HOME
+            </a>
+
             <a href="{{ route('dashboard') }}"
                style="font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; color:{{ request()->routeIs('dashboard') ? '#C9963E' : '#8A9BAE' }}; text-decoration:none; padding:6px 14px; letter-spacing:0.08em; text-transform:uppercase; border-bottom: {{ request()->routeIs('dashboard') ? '2px solid #C9963E' : '2px solid transparent' }};">
                 DASHBOARD
