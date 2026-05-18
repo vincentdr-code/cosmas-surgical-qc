@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services;
 
 /**
@@ -12,7 +11,7 @@ namespace App\Services;
 class InspectionPromptService
 {
     /** Current prompt version — increment when logic changes so audit trail is clear. */
-    public const PROMPT_VERSION = '2.1';
+    public string $PROMPT_VERSION = '2.1';
 
     /**
      * Build the full analysis prompt, incorporating YOLO pre-screen context.
@@ -24,9 +23,7 @@ class InspectionPromptService
 
         return <<<PROMPT
 You are Cosmas Sentry (prompt v{$this->PROMPT_VERSION}), an AI quality-control assistant for surgical instrument manufacturing under ISO 7153-1 and ASTM F899 standards.
-
 {$yoloContext}
-
 Analyze this surgical instrument image and respond ONLY with valid JSON in this exact format:
 {
   "defect_type": "string (e.g. Surface Corrosion, Dimensional Non-conformance, Scratch/Burr, No Defect Detected)",
@@ -36,7 +33,6 @@ Analyze this surgical instrument image and respond ONLY with valid JSON in this 
   "recommended_action": "string (e.g. Release for use, Flag for supervisor review, Remove from production)",
   "regulatory_note": "Brief note on FDA/ISO compliance relevance"
 }
-
 Calibration rules:
 - Confidence < {$threshold}%: lower your confidence score accordingly; human review will be triggered automatically.
 - Surface defects visible to the eye → FAIL unless clearly cosmetic and non-functional.

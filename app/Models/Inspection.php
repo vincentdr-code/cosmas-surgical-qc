@@ -15,6 +15,12 @@ class Inspection extends Model
         'pass_fail',
         'claude_reasoning',
         'bounding_box',
+    
+        'composite_risk_score',
+        'risk_level',
+        'agent_steps',
+        'cost_matrix',
+        'instrument_class',
     ];
 
     protected $casts = [

@@ -141,60 +141,70 @@ class ReactApiController extends Controller
         $instrId = 'INST-' . strtoupper(substr(md5(uniqid()), 0, 8));
         $start   = microtime(true);
 
-        // YOLO
-        $yoloResult = $this->runYolo($fullPath);
-
-        // Claude
+        // ── Agent Orchestrator (5-tool agentic loop) ──────────────────────
         $threshold    = 70;
-        $prompt       = $this->promptService->build($yoloResult, $threshold);
-        $claudeResult = $this->runClaude($fullPath, $prompt);
-
+        $orchestrator = app(\App\Services\InspectionOrchestratorService::class);
+        $result       = $orchestrator->runInspection($fullPath, $threshold);
         $processingMs = round((microtime(true) - $start) * 1000, 1);
 
-        // Apply threshold
-        if (strtoupper($claudeResult['pass_fail'] ?? '') === 'PASS'
-            && ($claudeResult['confidence'] ?? 0) < $threshold) {
-            $claudeResult['pass_fail'] = 'FLAGGED';
-        }
+        // Extract YOLO data from agent steps for response compatibility
+        $agentSteps = $result['agent_steps'] ?? [];
+        $yoloStep   = collect($agentSteps)->firstWhere('tool', 'run_yolo_scan');
+        $yoloData   = $yoloStep['result'] ?? [];
+        $detections = $yoloData['detections'] ?? [];
+        $costMatrix = $result['cost_matrix'] ?? null;
 
-        // Persist
+        // Persist with full orchestrator output
         Inspection::create([
-            'instrument_id'      => $instrId,
-            'operator_id'        => $operatorId,
-            'user_id'            => null,
-            'image_path'         => $imagePath,
-            'defect_type'        => $claudeResult['defect_type']       ?? 'Unknown',
-            'confidence'         => $claudeResult['confidence']         ?? 0,
-            'pass_fail'          => $claudeResult['pass_fail']          ?? 'FAIL',
-            'claude_reasoning'   => $claudeResult['reasoning']          ?? '',
-            'regulatory_note'    => $claudeResult['regulatory_note']    ?? null,
-            'recommended_action' => $claudeResult['recommended_action'] ?? null,
-            'yolo_detections'    => json_encode($yoloResult['detections'] ?? []),
-            'yolo_count'         => $yoloResult['count']                ?? 0,
-            'yolo_model'         => $yoloResult['model_used']           ?? 'unavailable',
-            'inference_ms'       => $processingMs,
+            'instrument_id'        => $instrId,
+            'operator_id'          => $operatorId,
+            'user_id'              => 1,
+            'image_path'           => $imagePath,
+            'defect_type'          => $result['defect_type']          ?? 'Unknown',
+            'instrument_class'     => $result['instrument_class']     ?? null,
+            'confidence'           => $result['confidence']           ?? 0,
+            'pass_fail'            => $result['verdict']              ?? 'FAIL',
+            'claude_reasoning'     => $result['reasoning']            ?? '',
+            'regulatory_note'      => $result['regulatory_note']      ?? null,
+            'recommended_action'   => $result['recommended_action']   ?? null,
+            'composite_risk_score' => $result['composite_risk_score'] ?? null,
+            'risk_level'           => $result['risk_level']           ?? null,
+            'agent_steps'          => json_encode($agentSteps),
+            'cost_matrix'          => $costMatrix ? json_encode($costMatrix) : null,
+            'yolo_detections'      => json_encode($detections),
+            'yolo_count'           => $yoloData['count']              ?? 0,
+            'yolo_model'           => $yoloData['model_used']         ?? 'unavailable',
+            'inference_ms'         => $processingMs,
         ]);
 
-        $conf         = (float) ($claudeResult['confidence'] ?? 0);
-        $detections   = $yoloResult['detections'] ?? [];
-        $firstBbox    = !empty($detections) ? ($detections[0]['bounding_box'] ?? null) : null;
+        $conf      = (float) ($result['confidence'] ?? 0);
+        $firstBbox = !empty($detections) ? ($detections[0]['bounding_box'] ?? null) : null;
+
+        // Only include detections that have a valid bounding box (prevents React crash)
+        $safeDetections = array_values(array_filter(
+            array_map(fn($d) => isset($d['bounding_box']['x1']) ? [
+                'defect_type'  => $d['class_name']  ?? 'unknown',
+                'confidence'   => $d['confidence']   ?? 0,
+                'pass_fail'    => ($d['severity'] ?? '') === 'HIGH' ? 'FAIL' : 'PASS',
+                'bounding_box' => $d['bounding_box'],
+            ] : null, $detections),
+            fn($d) => $d !== null
+        ));
 
         return $this->cors(response()->json([
-            'pass_fail'          => strtoupper($claudeResult['pass_fail'] ?? 'FAIL'),
-            'defect_type'        => $claudeResult['defect_type'] ?? 'Unknown',
-            'confidence'         => round($conf / 100, 4),
-            'instrument_id'      => $instrId,
-            'timestamp'          => now()->toIso8601String(),
-            'processing_time_ms' => $processingMs,
-            'detection_count'    => count($detections),
-            'plc_signal_sent'    => true,
-            'bounding_box'       => $firstBbox,
-            'all_detections'     => array_map(fn($d) => [
-                'defect_type'  => $d['class_name']   ?? 'unknown',
-                'confidence'   => $d['confidence']    ?? 0,
-                'pass_fail'    => $d['severity'] === 'HIGH' ? 'FAIL' : 'PASS',
-                'bounding_box' => $d['bounding_box']  ?? null,
-            ], $detections),
+            'pass_fail'            => strtoupper($result['verdict'] ?? 'FAIL'),
+            'defect_type'          => $result['defect_type'] ?? 'Unknown',
+            'confidence'           => round($conf / 100, 4),
+            'instrument_id'        => $instrId,
+            'timestamp'            => now()->toIso8601String(),
+            'processing_time_ms'   => $processingMs,
+            'detection_count'      => count($detections),
+            'plc_signal_sent'      => true,
+            'bounding_box'         => $firstBbox,
+            'risk_level'           => $result['risk_level']           ?? 'UNKNOWN',
+            'composite_risk_score' => $result['composite_risk_score'] ?? null,
+            'reasoning'            => $result['reasoning']            ?? '',
+            'all_detections'       => $safeDetections,
         ]));
     }
 
@@ -283,11 +293,11 @@ class ReactApiController extends Controller
         return 'SURG-' . strtoupper(substr(md5('cosmas' . $id), 0, 8));
     }
 
-    private function parseBoundingBox(?string $raw): ?array
+    private function parseBoundingBox(mixed $raw): ?array
     {
-        if (!$raw) return null;
-        $decoded = json_decode($raw, true);
-        if (!$decoded || !isset($decoded['x1'])) return null;
+        if (empty($raw)) return null;
+        $decoded = is_array($raw) ? $raw : json_decode($raw, true);
+        if (!is_array($decoded) || !isset($decoded['x1'])) return null;
         return ['x1' => $decoded['x1'], 'y1' => $decoded['y1'],
                 'x2' => $decoded['x2'], 'y2' => $decoded['y2']];
     }
