@@ -96,8 +96,17 @@ class InspectionOrchestratorService
                     $toolInput = $block['input'] ?? [];
                     $toolId    = $block['id'];
 
-                    // finalize_inspection_report — capture and break
+                    // finalize_inspection_report — only accepted after prerequisites
                     if ($toolName === 'finalize_inspection_report') {
+                        $calledTools = array_column($agentSteps, 'tool');
+                        if (!in_array('calculate_risk_score', $calledTools)) {
+                            $toolResultBlocks[] = [
+                                'type'        => 'tool_result',
+                                'tool_use_id' => $toolId,
+                                'content'     => json_encode(['error' => 'WORKFLOW INCOMPLETE: You must call calculate_risk_score before finalize_inspection_report. Use the severity_score and recall_prior values returned by lookup_regulatory_context.']),
+                            ];
+                            continue;
+                        }
                         $finalReport = $toolInput;
                         $agentSteps[] = [
                             'tool'   => $toolName,
@@ -253,7 +262,7 @@ PROMPT;
                             ],
                         ],
                     ],
-                    'required' => ['verdict', 'confidence', 'defect_type', 'reasoning', 'risk_level'],
+                    'required' => ['verdict', 'confidence', 'defect_type', 'reasoning', 'risk_level', 'composite_risk_score'],
                 ],
             ],
         ];
