@@ -1,265 +1,251 @@
-# Cosmas Sentry — AI-Powered Surgical Instrument Quality Control
+# COSMAS SENTRY — AI-Powered Defect Detection for Surgical Instrument Manufacturing
 
-> *"If we do not have a quality product, how can we identify quality instruments."*
-
-**Live Demo:** https://cosmas-sentry.duckdns.org  
+**Live demo:** https://cosmas.vincentcode.com  
 **GitHub:** https://github.com/vincentdr-code/cosmas-surgical-qc  
-**Demo Login:** admin@cosmas-sentry.com / password
+**Stack:** Laravel 11 · PHP 8.5 · YOLOv8s · Claude API (claude-sonnet-4-6) · MySQL · React (Vite) · nginx · AWS EC2
 
 ---
 
-## The Problem
+## What This Is
 
-Surgical instrument manufacturers (SIC 3841) inspect hundreds of thousands of instruments annually using manual visual inspection. Manual QC costs approximately **$0.15 per instrument** (based on $18–25/hr labour at 45 seconds per inspection), introduces human error, and creates bottlenecks on the production line. Defective instruments that pass inspection represent a direct patient safety risk and expose manufacturers to FDA enforcement and product liability.
+COSMAS SENTRY is a production-deployed AI quality-control system for surgical instrument manufacturing (SIC 3841). A QC inspector uploads a photo of a surgical instrument; the system runs it through a five-step autonomous AI agent pipeline and returns a PASS / FAIL / FLAGGED verdict with a confidence score, Composite Risk Score, regulatory citation, and cost-based decision recommendation — all in under 60 seconds.
 
-**The core question:** How can AI-powered defect detection reduce quality-control costs while improving patient safety and maintaining FDA compliance?
+The core question: **How can AI-powered defect detection reduce QC costs while improving patient safety and maintaining FDA compliance?**
 
----
-
-## The Solution: Cosmas Sentry
-
-Cosmas Sentry is a web-based AI quality control platform that replaces manual visual inspection with a two-stage AI pipeline:
-
-1. **YOLOv8s Computer Vision** — detects instrument class and flags structural anomalies in ~200ms
-2. **Claude AI Reasoning** — performs contextual defect analysis, references ISO 13485 / FDA 21 CFR Part 820 standards, and generates a PASS / FAIL / FLAGGED decision with full reasoning
-
-Every inspection is logged to an immutable audit trail (Device History Record), satisfying FDA 21 CFR Part 11 electronic records requirements.
-
-**Cost comparison:**
-| Method | Cost/Inspection | Speed | Error Rate |
-|--------|----------------|-------|------------|
-| Manual | $0.15 | 45 sec | Human variable |
-| Cosmas AI | $0.01 | ~200ms | Consistent |
-| **Savings** | **$0.14** | **225× faster** | Auditable |
-
-At 10,000 inspections/month → **$1,400/month · $16,800/year** in direct labour savings.
+The answer the system demonstrates: $0.14 saved per inspection unit vs. manual review, $16,800/yr at 10,000 units/month, with every result logged to an auditable Device History Record.
 
 ---
 
-## Architecture
+## Architecture Overview
 
 ```
-[User: Upload Instrument Image]
+Browser / React SPA (Vite)
         │
         ▼
-[Laravel Web App]  ──auth──►  [InspectionController]
-                                      │
-                    ┌─────────────────┼─────────────────┐
-                    ▼                 ▼                  ▼
-          [YOLOv8s FastAPI]   [Claude API]        [SQLite DB]
-          port 8001           claude-sonnet-4-6   Inspections
-          ~200ms inference    Contextual reasoning Audit Trail
-          class+confidence    ISO/FDA context
-                    │                 │
-                    └────────┬────────┘
-                             ▼
-                    [Results Page]
-                    PASS / FAIL / FLAGGED
-                    confidence score
-                    plain-English reasoning
-                    regulatory note
-                             │
-              ┌──────────────┼──────────────┐
-              ▼              ▼              ▼
-         [Dashboard]   [Audit Log]   [ROI Calculator]
-         KPI cards     Device Hist.  Cost savings model
+   nginx (HTTPS, port 443)
+   ├── /upload, /dashboard, /home, /audit-log, /results/*  → PHP-FPM (Laravel)
+   ├── /css/*                                              → Laravel public/
+   └── /*                                                  → React dist/ (SPA catch-all)
+        │
+        ▼
+   Laravel 11 Application
+   ├── InspectionController       — thin HTTP layer, delegates to orchestrator
+   ├── InspectionOrchestratorService  — Claude agent loop (up to 12 iterations)
+   ├── DashboardController        — KPI aggregation, 14-day trend data
+   └── RoiController              — ROI calculator
+        │
+        ├── Claude API (claude-sonnet-4-6)
+        │   tool_use loop: up to 12 iterations, 5 tools, 4096 max_tokens
+        │
+        └── YOLOv8s Service (FastAPI, port 8001, localhost only)
+                /health  /detect  /reload-model
 ```
 
-### Stack
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| Frontend | Laravel Blade + Tailwind CSS | Server-rendered UI |
-| Backend | Laravel 11 (PHP 8.5) | Routing, auth, business logic |
-| AI Vision | YOLOv8s (Ultralytics, fine-tuned) | Defect detection, ~200ms inference |
-| AI Reasoning | Claude API (claude-sonnet-4-6) | Contextual analysis, FDA-aware |
-| Database | SQLite | Inspections, audit log, users |
-| Web Server | Nginx + PHP-FPM | Production HTTP/HTTPS |
-| Deployment | AWS EC2 t2.micro | Free tier, live 24/7 |
-| SSL | Let's Encrypt (Certbot) | HTTPS, auto-renews |
+**Infrastructure:** AWS EC2 t2.micro (Free Tier) · Ubuntu 22.04 · MySQL 8 · PHP-FPM 8.5 · systemd service for YOLO
 
 ---
 
-## AI Feature: Two-Stage Inspection Pipeline
+## The AI Agent Pipeline
 
-The AI feature is not a chatbot wrapper. It is a functional two-stage pipeline:
+Every image upload triggers a Claude tool-use agentic loop. Claude decides which tool to call next based on accumulated context — it is not scripted; it reasons.
 
-**Stage 1 — YOLOv8s Computer Vision**
-```
-POST http://127.0.0.1:8001/predict
-Input:  base64-encoded instrument image
-Output: { class, confidence, bounding_box, inference_ms }
-```
+| Step | Tool | What It Does |
+|------|------|--------------|
+| 1 | `check_image_quality` | Validates resolution (≥200×200), file size, and sharpness via GD pixel-variance. Returns OK / POOR / RESUBMIT. |
+| 2 | `run_yolo_scan` | Calls the FastAPI YOLOv8s service at `localhost:8001/detect`. Returns bounding boxes, class names, and confidence scores. Falls back to Claude direct vision if service is down. |
+| 3 | `lookup_regulatory_context` | Maps defect type → FDA 21 CFR Part 820, ISO 7153-1, ISO 13485, ASTM F899 citation. Returns severity baseline (1–10) and Bayesian recall prior from FDA MAUDE data. |
+| 4 | `calculate_risk_score` | Computes Composite Risk Score: `CRS = (S × O × D) × P(recall\|defect) × trend_weight`. Pulls live 30-day and 7-day defect rates from the database. Returns Expected Value cost matrix. |
+| 5 | `finalize_inspection_report` | Emits structured verdict: PASS / FAIL / FLAGGED, confidence 0–100, full reasoning chain citing standards, recommended action, and cost matrix. |
 
-The YOLOv8s model is fine-tuned on a combined surgical instrument defect dataset of **10,764 images** across four sources:
-
-| # | Dataset | Source | Images | License |
-|---|---------|--------|--------|---------|
-| 1 | NEU Surface Defect | Roboflow: pavithraa-sekar/neu-surface-defect-dataset v1 | 1,799 | CC BY 4.0 |
-| 2 | Rust Corrosion Detection | Roboflow: averkios/rust-corrosion-detection v16 | 8,354 (subsampled 2,500 train) | CC BY 4.0 |
-| 3 | NEU Steel Surface Defect | Kaggle: sovitrath/neu-steel-surface-defect-detect | 1,800 | Unknown |
-| 4 | Synthetic Metal Defects | Kaggle: tatheerabbas/synthetic-industrial-metal | ~15,000 (subsampled 4,600) | CC BY 4.0 |
-
-**Trained classes and distribution:**
-| ID | Class | Train Annotations | Val Annotations |
-|----|-------|------------------|-----------------|
-| 0 | cracks | 1,978 | 320 |
-| 1 | corrosion | 10,620 | 877 |
-| 2 | misalignment | — (v2 roadmap) | — |
-| 3 | scratches | 4,356 | 675 |
-| 4 | porosity | 3,355 | 451 |
-| 5 | none (conforming) | 800 | 120 |
-| | **TOTAL** | **9,506 images** | **1,258 images** |
-
-> **Note on misalignment:** No public dataset contained labelled misalignment examples at training time. The class is reserved in the schema; the model handles it via Claude's contextual reasoning. Dedicated misalignment data will be added in v2.
-
-**Training configuration:**
-- Model: YOLOv8s (11M params), COCO-pretrained transfer learning
-- Optimizer: AdamW, lr0=0.001, cosine LR decay, warmup_epochs=5
-- Anti-overfitting: weight_decay=0.0005, patience=20 early stopping, close_mosaic=10
-- Augmentation: mosaic, copy_paste=0.1 (helps rare classes), calibrated HSV/flip/scale
-- Hardware: Google Colab T4 GPU
-
-**Stage 2 — Claude AI Reasoning**
-```
-Claude API: claude-sonnet-4-6 (vision)
-Input:  instrument image + YOLOv8s detection result
-Output: { defect_analysis, pass_fail, regulatory_note, recommended_action }
-```
-
-Claude receives the image directly alongside YOLOv8s findings and performs contextual reasoning — distinguishing cosmetic marks from structural defects, referencing applicable standards, and explaining its decision in plain language a QC supervisor can act on.
-
-**Why two stages?** YOLOv8s provides fast, consistent object-level detection. Claude provides interpretability and regulatory context. Neither alone is sufficient — together they mirror how an expert QC inspector actually reasons.
+**Risk tiers:** LOW < 50 · MEDIUM 50–149 · HIGH 150–299 · CRITICAL ≥ 300  
+**Decision rule:** `argmin[E(action)]` subject to `E(Pass) = ∞` when CRS ≥ 300
 
 ---
 
-## FDA Compliance Pathway
+## Key Files
 
-Cosmas Sentry is designed to **support** FDA-compliant workflows, not replace regulatory review.
+```
+app/
+├── Http/Controllers/
+│   ├── InspectionController.php      — upload, results, audit log, CSV export
+│   ├── DashboardController.php       — KPI stats + Chart.js trend data
+│   └── RoiController.php             — ROI calculator
+├── Services/
+│   └── InspectionOrchestratorService.php  — Claude agent loop + 5 tool implementations
+└── Models/
+    └── Inspection.php                — core domain model
 
-- **21 CFR Part 820** (Quality System Regulation): Every inspection generates a Device History Record with timestamp, user ID, AI decision, confidence score, and reasoning.
-- **21 CFR Part 11** (Electronic Records): Audit log is append-only, timestamped, and user-attributed.
-- **ISO 13485**: AI augments human QC review — final disposition remains with a qualified inspector.
-- **Positioning**: "AI-augmented QC" — the system makes recommendations, humans make final decisions.
+resources/views/
+├── layouts/
+│   ├── app.blade.php                 — shell layout, injects cosmas-premium.css
+│   └── navigation.blade.php          — nav: HOME | DASHBOARD | INSPECT | AUDIT LOG | SETTINGS
+├── welcome.blade.php                 — authenticated command center (/home)
+├── dashboard.blade.php               — KPI dashboard with Chart.js trend chart
+├── inspections/
+│   ├── upload.blade.php              — image upload form (React SPA proxy)
+│   ├── results.blade.php             — verdict, agent chain, YOLO detections, cost matrix
+│   └── audit-log.blade.php           — paginated DHR with CSV export
+└── roi.blade.php                     — ROI calculator
+
+public/css/
+└── cosmas-premium.css                — Glassmorphism 2.0 design system
+
+routes/
+└── web.php                           — all named routes
+
+yolo-service/
+├── main.py                           — FastAPI: /health, /detect, /reload-model
+├── requirements.txt
+├── cosmas-yolo.service               — systemd unit (port 8001, localhost)
+└── setup.sh                          — EC2 one-shot setup
+
+tests/Feature/
+└── InspectionPipelineTest.php        — 9 domain tests (auth, API health, model, ROI, formatting)
+```
 
 ---
 
-## Setup & Deployment
+## Database Schema — `inspections` Table
 
-### Prerequisites
-- PHP 8.2+, Composer, Node.js
-- Python 3.10+, pip
-- AWS EC2 t2.micro (or equivalent)
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | bigint PK | |
+| `user_id` | bigint FK | |
+| `image_path` | varchar | storage/app/public/inspections/ |
+| `pass_fail` | varchar | PASS / FAIL / FLAGGED |
+| `confidence` | integer | 0–100 |
+| `defect_type` | varchar | e.g. surface_crack, corrosion |
+| `instrument_type` | varchar | e.g. scalpel, forceps |
+| `risk_level` | varchar | LOW / MEDIUM / HIGH / CRITICAL |
+| `composite_risk_score` | decimal | CRS from FMEA formula |
+| `inference_ms` | integer | Total orchestration wall time (ms) |
+| `claude_reasoning` | text | Full agent reasoning chain |
+| `regulatory_note` | text | FDA/ISO citation |
+| `recommended_action` | text | Human-readable next step |
+| `agent_steps` | json | Full tool call chain |
+| `cost_matrix` | json | EV decision matrix |
+| `yolo_detections` | json | Bounding boxes + confidence scores |
+| `yolo_count` | integer | Number of YOLO detections |
+| `yolo_model` | varchar | Model weights filename |
+| `created_at` / `updated_at` | timestamps | |
 
-### Local Development
+---
+
+## Routes
+
+| Method | URI | Name | Auth |
+|--------|-----|------|------|
+| GET | `/home` | `home` | ✓ |
+| GET | `/dashboard` | `dashboard` | ✓ |
+| GET | `/upload` | `inspections.upload` | ✓ |
+| POST | `/upload` | `inspections.store` | ✓ |
+| GET | `/results/{inspection}` | `inspections.results` | ✓ |
+| GET | `/audit-log` | `inspections.audit-log` | ✓ |
+| GET | `/roi` | `roi` | ✓ |
+| GET | `/api/v1/health` | — | public |
+
+---
+
+## Design System
+
+`public/css/cosmas-premium.css` — Glassmorphism 2.0 dark chrome aesthetic.
+
+- Background: dark navy `#05090f` with aurora radial-gradient layers and SVG `feTurbulence` noise grain (2.8% opacity)
+- Cards: `backdrop-filter: blur(14px) saturate(160%)` on `rgba(10,16,28,0.6)`
+- Accent: metallic gold gradient `linear-gradient(135deg, #ffe599, #d4a030, #8a5c14, #f5d078)`
+- Verdict glows: FAIL → red box-shadow · PASS → green · FLAGGED → amber
+- Fonts: Share Tech Mono + IBM Plex Mono
+- Utility classes: `.glass`, `.gold-text`, `.glow-gold`, `.chrome-btn`
+
+---
+
+## Local Development
+
 ```bash
-# Clone
-git clone https://github.com/vincentdr-code/cosmas-surgical-qc.git
+# Clone and install
+git clone https://github.com/vincentdr-code/cosmas-surgical-qc
 cd cosmas-surgical-qc
-
-# Install PHP dependencies
 composer install
-
-# Environment
 cp .env.example .env
 php artisan key:generate
-# Add ANTHROPIC_API_KEY to .env
 
-# Database
+# Configure .env
+DB_DATABASE=cosmas
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Migrate and seed demo data
 php artisan migrate
 php artisan db:seed --class=DemoSeeder
 
-# Run
+# Start Laravel
 php artisan serve
-```
 
-### YOLOv8s Service
-```bash
-cd cosmas-yolo
+# Start YOLO service (requires Python 3.10+, ultralytics)
+cd yolo-service
 pip install -r requirements.txt
 uvicorn main:app --host 127.0.0.1 --port 8001
 ```
 
-### Production (EC2)
-```bash
-# Nginx config: /etc/nginx/conf.d/cosmas.conf
-# SSL: Let's Encrypt via Certbot (auto-renews)
-# PHP-FPM: php8.5-fpm
-# Domain: cosmas-sentry.duckdns.org
+Demo credentials: `demo@cosmas.ai` / `password`
+
+---
+
+## EC2 Deployment
+
+```powershell
+# From PowerShell (Windows)
+$PEM = "$env:USERPROFILE\Downloads\cosmas-keypair.pem"
+$EC2 = "ubuntu@18.216.244.44"
+
+# Deploy code
+ssh -i $PEM $EC2 'cd /home/ubuntu/cosmas && git pull origin main'
+ssh -i $PEM $EC2 'cd /home/ubuntu/cosmas && composer install --no-dev && php artisan migrate --force'
+ssh -i $PEM $EC2 'sudo systemctl restart php8.5-fpm && sudo nginx -t && sudo systemctl reload nginx'
+
+# YOLO service status
+ssh -i $PEM $EC2 'sudo systemctl status cosmas-yolo'
 ```
 
 ---
 
-## Demo Credentials
+## CI — GitHub Actions
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@cosmas-sentry.com | password |
-| Inspector | inspector@cosmas-sentry.com | password |
-| Manager | manager@cosmas-sentry.com | password |
+Workflow at `.github/workflows/ci.yml` runs on every push to `main`:
 
----
+1. **PHP Lint** — `php -l` on all `.php` files
+2. **Laravel Tests** — `php artisan test` against `tests/Feature/InspectionPipelineTest.php`
 
-## Demo Script (5 minutes)
-
-1. **Login** at https://cosmas-sentry.duckdns.org → show dashboard KPIs
-2. **Upload** a surgical instrument image → watch YOLOv8s + Claude analyze it in real time
-3. **View result** → show PASS/FAIL decision, confidence score, Claude's reasoning, regulatory note
-4. **Audit log** → show Device History Record trail
-5. **ROI calculator** → adjust to 50,000 inspections/month, show $84,000/year savings
-6. **Judge question:** "What would have to break for this to fail a real FDA audit?" → Answer: human override is always available, AI is advisory, every decision is logged with user attribution
-
----
-
-## Business Case Summary
-
-**Market:** US surgical instrument manufacturing (SIC 3841) — $3.2B market, 500+ manufacturers, all subject to FDA QSR.
-
-**Problem size:** Industry spends an estimated $180M/year on manual QC inspection labour.
-
-**Cosmas solution:** Reduce per-inspection cost by 93% ($0.15 → $0.01), eliminate human inconsistency, generate audit-ready records automatically.
-
-**Go-to-market:** Target mid-size manufacturers (50–500 employees) currently using manual inspection or legacy CMM systems. SaaS model: $2,500/month per facility, unlimited inspections.
-
-**Unit economics:** Customer saves $16,800/year at 10k inspections/month. Cosmas charges $30,000/year. Customer ROI: positive in year 1. Cosmas gross margin: ~85%.
-
----
-
-## Project Structure
-
-```
-cosmas/
-├── app/Http/Controllers/
-│   ├── DashboardController.php   # KPI metrics, recent inspections
-│   ├── InspectionController.php  # Upload → YOLOv8s → Claude → result
-│   └── RoiController.php         # Interactive ROI calculator
-├── resources/views/
-│   ├── dashboard.blade.php       # Main QC dashboard
-│   ├── upload.blade.php          # Image upload form
-│   ├── results.blade.php         # Inspection result detail
-│   ├── audit-log.blade.php       # Device History Records
-│   └── roi.blade.php             # ROI calculator
-├── cosmas-yolo/
-│   ├── main.py                   # FastAPI YOLOv8s service
-│   └── models/                   # Fine-tuned model weights
-└── database/
-    └── database.sqlite           # Inspections + audit trail
-```
+Tests cover: login page loads · auth-protected routes redirect · `/api/v1/health` JSON shape · Inspection model field storage · verdict enum validation · Analysis Time formatting · ROI calculation ($0.14/unit → $16,800/yr).
 
 ---
 
 ## Rubric Alignment
 
-| Category | Points | How We Address It |
-|----------|--------|-------------------|
-| Problem Definition & Relevance | 10 | SIC 3841, real FDA compliance requirement, quantified $180M industry problem |
-| AI Feature Innovation & Integration | 20 | Two-stage YOLOv8s + Claude pipeline on 10,764-image fine-tuned model — not a chatbot wrapper |
-| Technical Execution & Code Quality | 20 | Laravel MVC, clean controllers, proper auth, migrations, FastAPI microservice |
-| User Experience & Design | 10 | Tailwind dashboard, KPI cards, clear PASS/FAIL UI, interactive ROI calculator |
-| Business Impact & Scalability | 10 | ROI calculator, SaaS model with unit economics, $180M TAM |
-| GitHub Transparency | 10 | Meaningful commits documenting iterative progress and architectural decisions |
-| Documentation & Communication | 10 | This README — problem, solution, architecture, training data, business case, demo script |
-| Deployment & Live Demo | 10 | https://cosmas-sentry.duckdns.org — live, HTTPS, 24/7 on AWS Free Tier |
+| Category | Points | How This Repo Addresses It |
+|----------|--------|---------------------------|
+| Problem Definition & Relevance | 10 | SIC 3841 surgical instrument QC — real FDA recall data, real cost benchmarks |
+| **AI Feature Innovation & Integration** | **20** | **Claude tool-use agentic loop · YOLOv8s computer vision · FMEA + Bayesian CRS · EV cost matrix · regulatory context lookup** |
+| Technical Execution & Code Quality | 20 | Laravel service layer pattern · typed PHP · conventional commits · CI green |
+| User Experience & Design | 10 | Glassmorphism 2.0 · command center home · audit log · responsive layout |
+| Business Impact & Scalability | 10 | $0.14/unit savings · $16,800/yr at 10k/mo · ROI calculator · Device History Records |
+| GitHub Transparency | 10 | 60+ commits · conventional commit format · rubric-cited commit messages |
+| Documentation & Communication | 10 | This README · agent chain visible in results view · regulatory citations in every report |
+| Deployment & Live Demo | 10 | Live at https://cosmas.vincentcode.com · AWS Free Tier · HTTPS · no excuses needed |
 
 ---
 
-*Built for the CUA AI Vibe Coding Competition · May–June 2026*
+## Ethical & Regulatory Stance
+
+COSMAS SENTRY augments human judgment — it does not replace it.
+
+- Every verdict includes confidence score and full reasoning chain
+- FLAGGED items route to human review with cost justification
+- No claim of FDA approval — system is designed to support FDA 21 CFR Part 820-compliant workflows
+- Confidence threshold configurable per user; low-confidence PASSes auto-escalate to FLAGGED
+- All inspection records are permanent, auditable Device History Records
+
+---
+
+**Last Updated:** May 2026 — Active competition build  
+**Maintainer:** Daniel Vincent · vincentdr@cua.edu  
+**Competition:** CUA AI Vibe Coding Competition
