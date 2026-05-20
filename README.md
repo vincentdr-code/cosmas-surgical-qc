@@ -1,6 +1,6 @@
 # COSMAS SENTRY — AI-Powered Defect Detection for Surgical Instrument Manufacturing
 
-**Live demo:** https://cosmas.vincentcode.com  
+**Live demo:** https://https://cosmas-sentry.duckdns.org 
 **GitHub:** https://github.com/vincentdr-code/cosmas-surgical-qc  
 **Stack:** Laravel 11 · PHP 8.5 · YOLOv8s · Claude API (claude-sonnet-4-6) · MySQL · React (Vite) · nginx · AWS EC2
 
