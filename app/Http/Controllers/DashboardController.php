@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -23,7 +23,7 @@ class DashboardController extends Controller
                             ->avg('confidence');
         $avgConfidence = $avgConfidence ? round($avgConfidence, 1) : null;
 
-        // ── 14-day trend data for Chart.js ──────────────────────────────────
+        // â”€â”€ 14-day trend data for Chart.js â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $days         = collect(range(13, 0))->map(fn($d) => Carbon::today()->subDays($d));
         $trendLabels  = $days->map(fn($d) => $d->format('M j'))->values();
 
@@ -51,10 +51,11 @@ class DashboardController extends Controller
 
         $lastInspection = Inspection::latest()->first();
 
+        $mode = request()->query('mode', 'both');
         return view('dashboard', compact(
             'total', 'passed', 'failed', 'flagged', 'passRate', 'costSaved',
             'recent', 'avgConfidence',
-            'trendLabels', 'trendPass', 'trendFail', 'trendFlagged', 'lastInspection'
+            'trendLabels', 'trendPass', 'trendFail', 'trendFlagged', 'lastInspection', 'mode'
         ));
     }
 }
