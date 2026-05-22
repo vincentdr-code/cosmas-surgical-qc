@@ -23,7 +23,7 @@ class DashboardController extends Controller
                             ->avg('confidence');
         $avgConfidence = $avgConfidence ? round($avgConfidence, 1) : null;
 
-        // â”€â”€ 14-day trend data for Chart.js â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // -- 14-day trend data for Chart.js
         $days         = collect(range(13, 0))->map(fn($d) => Carbon::today()->subDays($d));
         $trendLabels  = $days->map(fn($d) => $d->format('M j'))->values();
 
@@ -51,11 +51,35 @@ class DashboardController extends Controller
 
         $lastInspection = Inspection::latest()->first();
 
+        // -- Defect type breakdown (top 5 by count, excluding none)
+        $defectBreakdown = Inspection::select(
+                DB::raw("LOWER(defect_type) as defect_type"),
+                DB::raw("COUNT(*) as cnt")
+            )
+            ->whereNotNull('defect_type')
+            ->whereRaw("LOWER(defect_type) != 'none'")
+            ->groupBy('defect_type')
+            ->orderByDesc('cnt')
+            ->limit(5)
+            ->get();
+
+        // -- Risk level breakdown
+        $riskBreakdown = Inspection::select(
+                DB::raw("UPPER(risk_level) as risk_level"),
+                DB::raw("COUNT(*) as cnt")
+            )
+            ->whereNotNull('risk_level')
+            ->groupBy('risk_level')
+            ->orderByDesc('cnt')
+            ->get();
+
         $mode = request()->query('mode', 'both');
+
         return view('dashboard', compact(
             'total', 'passed', 'failed', 'flagged', 'passRate', 'costSaved',
             'recent', 'avgConfidence',
-            'trendLabels', 'trendPass', 'trendFail', 'trendFlagged', 'lastInspection', 'mode'
+            'trendLabels', 'trendPass', 'trendFail', 'trendFlagged', 'lastInspection',
+            'defectBreakdown', 'riskBreakdown', 'mode'
         ));
     }
 }
