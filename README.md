@@ -1,8 +1,11 @@
 # COSMAS SENTRY — AI-Powered Defect Detection for Surgical Instrument Manufacturing
 
-**Live demo:** https://https://cosmas-sentry.duckdns.org 
+[![CI](https://github.com/vincentdr-code/cosmas-surgical-qc/actions/workflows/ci.yml/badge.svg)](https://github.com/vincentdr-code/cosmas-surgical-qc/actions/workflows/ci.yml)
+
+**Live application:** https://cosmas-sentry.duckdns.org  
+**Marketing site:** https://cosmas-website.vercel.app  
 **GitHub:** https://github.com/vincentdr-code/cosmas-surgical-qc  
-**Stack:** Laravel 11 · PHP 8.5 · YOLOv8s · Claude API (claude-sonnet-4-6) · MySQL · React (Vite) · nginx · AWS EC2
+**Stack:** Laravel 11 · PHP 8.5 · YOLOv8n + YOLOv8s (two-stage pipeline) · Claude API (claude-sonnet-4-6) · SQLite · React (Vite) · nginx · AWS EC2 (t2.micro, Free Tier)
 
 ---
 
@@ -41,7 +44,7 @@ Browser / React SPA (Vite)
                 /health  /detect  /reload-model
 ```
 
-**Infrastructure:** AWS EC2 t2.micro (Free Tier) · Ubuntu 22.04 · MySQL 8 · PHP-FPM 8.5 · systemd service for YOLO
+**Infrastructure:** AWS EC2 t2.micro (Free Tier) · Ubuntu 22.04 · SQLite 3 · PHP-FPM 8.5 · systemd service for YOLO
 
 ---
 
@@ -62,6 +65,27 @@ Every image upload triggers a Claude tool-use agentic loop. Claude decides which
 
 ---
 
+## Two-Stage YOLO Vision Pipeline
+
+Tool 2 (`run_yolo_scan`) runs a custom two-stage computer vision pipeline before Claude reasons about the result:
+
+| Stage | Model | Purpose | Classes |
+|-------|-------|---------|---------|
+| 1 | `yolov8n_real_finetuned.pt` | Instrument type classifier | 6 classes (scalpel, forceps, scissors, needle holder, clamp, retractor) |
+| 2 | `yolov8s_defect_v3.pt` | Surface defect detector | cracks (HIGH), corrosion (HIGH), scratches (MEDIUM), porosity (MEDIUM), none (LOW) |
+
+**Training — defect model (yolov8s_defect_v3):**
+- Dataset: 10,764 images across 4 sources — NEU-DET (steel surface defects), Rust Detection, Steel Surface Defects, Synthetic augmentation
+- Training: 77 epochs, early stopping patience=20, best checkpoint at ~epoch 57
+- **mAP50 = 0.764** (Colab training notebook: see `/yolo-service/training/`)
+- Deployed to EC2 May 19, 2026 (commit `4752f9a`)
+
+**Severity escalation:** HIGH → FAIL · MEDIUM → FLAGGED · none → PASS (subject to CRS override)
+
+The FastAPI service runs on `127.0.0.1:8001` (localhost only, no public exposure) under systemd. If the service is unreachable, the orchestrator falls back to Claude's native vision capability automatically.
+
+---
+
 ## Key Files
 
 ```
@@ -69,6 +93,7 @@ app/
 ├── Http/Controllers/
 │   ├── InspectionController.php      — upload, results, audit log, CSV export
 │   ├── DashboardController.php       — KPI stats + Chart.js trend data
+│   ├── SettingsController.php        — configurable inspection thresholds (app_settings table)
 │   └── RoiController.php             — ROI calculator
 ├── Services/
 │   └── InspectionOrchestratorService.php  — Claude agent loop + 5 tool implementations
@@ -77,18 +102,18 @@ app/
 
 resources/views/
 ├── layouts/
-│   ├── app.blade.php                 — shell layout, injects cosmas-premium.css
-│   └── navigation.blade.php          — nav: HOME | DASHBOARD | INSPECT | AUDIT LOG | SETTINGS
+│   ├── app.blade.php                 — shell layout, Discomorphism v3 design system
+│   └── navigation.blade.php          — HOME | HOW IT WORKS | DASHBOARD | INSPECT | AUDIT LOG | SETTINGS
 ├── welcome.blade.php                 — authenticated command center (/home)
 ├── dashboard.blade.php               — KPI dashboard with Chart.js trend chart
+├── how-it-works.blade.php            — public 5-step pipeline explainer (no auth required)
+├── settings/
+│   └── threshold.blade.php           — configurable confidence + auto-fail sliders
 ├── inspections/
 │   ├── upload.blade.php              — image upload form (React SPA proxy)
 │   ├── results.blade.php             — verdict, agent chain, YOLO detections, cost matrix
 │   └── audit-log.blade.php           — paginated DHR with CSV export
 └── roi.blade.php                     — ROI calculator
-
-public/css/
-└── cosmas-premium.css                — Glassmorphism 2.0 design system
 
 routes/
 └── web.php                           — all named routes
@@ -135,6 +160,8 @@ tests/Feature/
 
 | Method | URI | Name | Auth |
 |--------|-----|------|------|
+| GET | `/how-it-works` | `how-it-works` | public |
+| GET | `/api/v1/health` | — | public |
 | GET | `/home` | `home` | ✓ |
 | GET | `/dashboard` | `dashboard` | ✓ |
 | GET | `/upload` | `inspections.upload` | ✓ |
@@ -142,20 +169,23 @@ tests/Feature/
 | GET | `/results/{inspection}` | `inspections.results` | ✓ |
 | GET | `/audit-log` | `inspections.audit-log` | ✓ |
 | GET | `/roi` | `roi` | ✓ |
-| GET | `/api/v1/health` | — | public |
+| GET | `/settings/threshold` | `settings.threshold` | ✓ |
+| PUT | `/settings/update` | `settings.update` | ✓ |
+| DELETE | `/settings/reset` | `settings.reset` | ✓ |
 
 ---
 
-## Design System
+## Design System — Discomorphism v3
 
-`public/css/cosmas-premium.css` — Glassmorphism 2.0 dark chrome aesthetic.
+Inline CSS design system applied across all views — no external CSS file dependency.
 
-- Background: dark navy `#05090f` with aurora radial-gradient layers and SVG `feTurbulence` noise grain (2.8% opacity)
-- Cards: `backdrop-filter: blur(14px) saturate(160%)` on `rgba(10,16,28,0.6)`
-- Accent: metallic gold gradient `linear-gradient(135deg, #ffe599, #d4a030, #8a5c14, #f5d078)`
-- Verdict glows: FAIL → red box-shadow · PASS → green · FLAGGED → amber
-- Fonts: Share Tech Mono + IBM Plex Mono
-- Utility classes: `.glass`, `.gold-text`, `.glow-gold`, `.chrome-btn`
+- **Background:** `#080808` base · `#0e0e0e` nav · `#121212` cards
+- **Texture:** Repeating `1px` grid overlay via `repeating-linear-gradient` on `::before` pseudo-elements — faceted chrome surface effect
+- **Chrome text:** `background: linear-gradient(135deg, #f2f2f2, #c8c8c8, #f0f0f0, #909090)` + `background-clip: text` — metallic headers
+- **Accent:** Gold `#C9963E` — verdicts, active nav, sliders, CTA buttons
+- **Shimmer:** `::after` horizontal translateX animation on `.tac-card-interactive:hover`
+- **Fonts:** JetBrains Mono (monospace, all UI text)
+- **Verdict colors:** `--pass: #4ACF82` · `--fail: #E05555` · `--flagged: #E8A834`
 
 ---
 
@@ -186,7 +216,7 @@ pip install -r requirements.txt
 uvicorn main:app --host 127.0.0.1 --port 8001
 ```
 
-Demo credentials: `demo@cosmas.ai` / `password`
+Demo credentials: `admin@cosmas-sentry.com` / `Z7%Gui56`
 
 ---
 
@@ -194,7 +224,7 @@ Demo credentials: `demo@cosmas.ai` / `password`
 
 ```powershell
 # From PowerShell (Windows)
-$PEM = "$env:USERPROFILE\Downloads\cosmas-keypair.pem"
+$PEM = "C:\Users\danie\OneDrive\Documents\Claude\Projects\Cosmas\cosmas-keypair.pem"
 $EC2 = "ubuntu@18.216.244.44"
 
 # Deploy code
@@ -226,11 +256,11 @@ Tests cover: login page loads · auth-protected routes redirect · `/api/v1/heal
 | Problem Definition & Relevance | 10 | SIC 3841 surgical instrument QC — real FDA recall data, real cost benchmarks |
 | **AI Feature Innovation & Integration** | **20** | **Claude tool-use agentic loop · YOLOv8s computer vision · FMEA + Bayesian CRS · EV cost matrix · regulatory context lookup** |
 | Technical Execution & Code Quality | 20 | Laravel service layer pattern · typed PHP · conventional commits · CI green |
-| User Experience & Design | 10 | Glassmorphism 2.0 · command center home · audit log · responsive layout |
+| User Experience & Design | 10 | Discomorphism v3 design system · command center home · audit log · responsive layout · one-click sample images |
 | Business Impact & Scalability | 10 | $0.14/unit savings · $16,800/yr at 10k/mo · ROI calculator · Device History Records |
-| GitHub Transparency | 10 | 60+ commits · conventional commit format · rubric-cited commit messages |
-| Documentation & Communication | 10 | This README · agent chain visible in results view · regulatory citations in every report |
-| Deployment & Live Demo | 10 | Live at https://cosmas.vincentcode.com · AWS Free Tier · HTTPS · no excuses needed |
+| GitHub Transparency | 10 | 70+ commits · conventional commit format · rubric-cited commit messages · iterative build visible in history |
+| Documentation & Communication | 10 | This README · How It Works public page · agent chain visible in results view · regulatory citations in every report |
+| Deployment & Live Demo | 10 | Live at https://cosmas-sentry.duckdns.org · AWS Free Tier · HTTPS · no excuses needed |
 
 ---
 
@@ -246,6 +276,24 @@ COSMAS SENTRY augments human judgment — it does not replace it.
 
 ---
 
-**Last Updated:** May 2026 — Active competition build  
+---
+
+## Demo Credentials
+
+| URL | Credentials |
+|-----|-------------|
+| https://cosmas-sentry.duckdns.org | `admin@cosmas-sentry.com` / `Z7%Gui56` |
+
+The demo account has 60+ real inspection records from actual test runs. Upload any surgical instrument image to trigger the full two-stage AI pipeline (YOLOv8n classifier → YOLOv8s defect detector → Claude reasoning → FMEA risk score → verdict).
+
+**One-click sample images** are available directly in the React inspection terminal — five presets covering every result type: Clean Surface (PASS), Surface Crack (FAIL), Corrosion (FAIL), Surface Scratch (FLAGGED), Pitting/Porosity (FLAGGED). No file needed to run a live demo.
+
+The Settings page (`/settings/threshold`) lets you adjust the confidence threshold and auto-fail floor in real time — changes apply to all subsequent inspections.
+
+The Dashboard and Audit Log both support scope filtering (single image / batch / all) added May 21, 2026.
+
+---
+
+**Last Updated:** May 2026 — Active competition build (deadline June 13, 2026)  
 **Maintainer:** Daniel Vincent · vincentdr@cua.edu  
 **Competition:** CUA AI Vibe Coding Competition
