@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace App\Http\Controllers;
 
@@ -23,14 +23,14 @@ class DashboardController extends Controller
                             ->avg('confidence');
         $avgConfidence = $avgConfidence ? round($avgConfidence, 1) : null;
 
-        // -- 14-day trend data for Chart.js
-        $days         = collect(range(13, 0))->map(fn($d) => Carbon::today()->subDays($d));
-        $trendLabels  = $days->map(fn($d) => $d->format('M j'))->values();
+        // 14-day trend data for Chart.js
+        $days        = collect(range(13, 0))->map(fn($d) => Carbon::today()->subDays($d));
+        $trendLabels = $days->map(fn($d) => $d->format('M j'))->values();
 
         $trendRows = Inspection::select(
-                DB::raw("DATE(created_at) as day"),
-                DB::raw("UPPER(pass_fail) as verdict"),
-                DB::raw("COUNT(*) as cnt")
+                DB::raw('DATE(created_at) as day'),
+                DB::raw('UPPER(pass_fail) as verdict'),
+                DB::raw('COUNT(*) as cnt')
             )
             ->where('created_at', '>=', Carbon::today()->subDays(13)->startOfDay())
             ->groupBy('day', 'verdict')
@@ -51,10 +51,10 @@ class DashboardController extends Controller
 
         $lastInspection = Inspection::latest()->first();
 
-        // -- Defect type breakdown (top 5 by count, excluding none)
+        // Defect type breakdown - top 5 by count, excluding none
         $defectBreakdown = Inspection::select(
-                DB::raw("LOWER(defect_type) as defect_type"),
-                DB::raw("COUNT(*) as cnt")
+                DB::raw('LOWER(defect_type) as defect_type'),
+                DB::raw('COUNT(*) as cnt')
             )
             ->whereNotNull('defect_type')
             ->whereRaw("LOWER(defect_type) != 'none'")
@@ -63,10 +63,10 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        // -- Risk level breakdown
+        // Risk level breakdown
         $riskBreakdown = Inspection::select(
-                DB::raw("UPPER(risk_level) as risk_level"),
-                DB::raw("COUNT(*) as cnt")
+                DB::raw('UPPER(risk_level) as risk_level'),
+                DB::raw('COUNT(*) as cnt')
             )
             ->whereNotNull('risk_level')
             ->groupBy('risk_level')
