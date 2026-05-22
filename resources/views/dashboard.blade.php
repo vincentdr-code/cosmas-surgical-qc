@@ -94,7 +94,7 @@
                             @endif
                         </td>
                         <td style="color:var(--muted); max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px;">{{ $insp->defect_type??'&mdash;' }}</td>
-                        <td style="color:var(--steel); font-size:12px;">{{ $insp->confidence?round($insp->confidence).'%':'&mdash;' }}</td>
+                        <td style="color:var(--steel); font-size:12px;">@php $cd=is_numeric($insp->confidence)&&$insp->confidence>0?($insp->confidence<=1?round($insp->confidence*100):round($insp->confidence)):null; @endphp{{ $cd!==null?$cd.'%':'&mdash;' }}</td>
                         <td style="color:var(--muted); font-size:11px;">{{ $insp->created_at->format('M d &middot; H:i') }}</td>
                         <td><a href="{{ route('inspections.results',$insp->id) }}" style="color:var(--gold); text-decoration:none; font-size:10px; font-weight:700; letter-spacing:0.08em;">VIEW</a></td>
                     </tr>
@@ -219,12 +219,13 @@
     {{-- Pipeline Explainer --}}
     <div class="tac-card">
         <div class="tac-label" style="margin-bottom:20px; position:relative; z-index:1;">[ AI INSPECTION PIPELINE ]</div>
-        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:rgba(255,255,255,0.04); position:relative; z-index:1;">
+        <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:rgba(255,255,255,0.04); position:relative; z-index:1;">
             @foreach([
-                ['num'=>'01','title'=>'UPLOAD IMAGE',   'desc'=>'Photo of surgical instrument from production line'],
-                ['num'=>'02','title'=>'YOLOv8 DETECT',  'desc'=>'Fine-tuned CV identifies instrument class in ~200ms'],
-                ['num'=>'03','title'=>'CLAUDE REASONING','desc'=>'Vision model assesses defects, references ISO/FDA standards'],
-                ['num'=>'04','title'=>'QC DECISION',    'desc'=>'PASS / FAIL / FLAGGED with regulatory note and audit trail'],
+                ['num'=>'01','title'=>'IMAGE QUALITY',     'desc'=>'Resolution, sharpness & framing validated via pixel-variance scoring'],
+                ['num'=>'02','title'=>'YOLOv8 SCAN',       'desc'=>'Two-stage CV: instrument classifier (6 classes) → defect detector, mAP50 0.764'],
+                ['num'=>'03','title'=>'REGULATORY CONTEXT','desc'=>'FDA 21 CFR, ISO 7153-1, ASTM lookup — severity, recall prior, sterilization risk'],
+                ['num'=>'04','title'=>'FMEA RISK SCORE',   'desc'=>'CRS = S×O×D × P(recall|defect) × trend weight — CRITICAL overrides to FAIL'],
+                ['num'=>'05','title'=>'AUDIT LOG ENTRY',   'desc'=>'Immutable DHR record per 21 CFR 820.184 — PASS / FAIL / FLAGGED verdict stored'],
             ] as $step)
             <div style="background:var(--card); padding:20px; text-align:center; position:relative; overflow:hidden;">
                 <div style="position:absolute; inset:0; pointer-events:none; background:

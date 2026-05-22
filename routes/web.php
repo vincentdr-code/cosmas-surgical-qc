@@ -6,6 +6,24 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RoiController;
 use Illuminate\Support\Facades\Route;
 
+// ── Root redirect ────────────────────────────────────────────────────────────
+// Authenticated users hitting / go to /home; guests go to /login.
+Route::get('/', function () {
+    return auth()->check()
+        ? redirect()->route('home')
+        : redirect()->route('login');
+});
+
+// ── Stale / guessable URL redirects (eliminate 404 root causes) ─────────────
+// /inspect was never a valid route; /upload is correct.
+Route::get('/inspect', function () {
+    return redirect()->route('inspections.upload', [], 301);
+})->middleware(['auth']);
+// /inspections/{id} mirrors the old Laravel resource-style URL; /results/{id} is correct.
+Route::get('/inspections/{id}', function ($id) {
+    return redirect()->route('inspections.results', $id, 301);
+})->middleware(['auth']);
+
 Route::get('/home', function () {
     return view('welcome');
 })->middleware(['auth'])->name('home');
