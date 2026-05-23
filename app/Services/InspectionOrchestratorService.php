@@ -571,6 +571,21 @@ PROMPT;
     private function toolRequestFocusedRescan(string $imagePath, string $focusArea, string $reason): array
     {
         try {
+            // GD is required for image cropping. If not installed, fall back to a full
+            // re-run of the original image rather than crashing. The catch uses \Throwable
+            // (not \Exception) because PHP 8 "Call to undefined function" errors are \Error,
+            // which extends \Throwable but NOT \Exception.
+            if (!extension_loaded('gd')) {
+                Log::warning('Focused rescan: php-gd not installed — falling back to full rescan.');
+                $result = $this->toolRunYoloScan($imagePath);
+                return array_merge($result, [
+                    'rescan_note'     => "GD extension not available — full rescan performed instead of cropped '{$focusArea}' region. Reason: {$reason}",
+                    'focus_area'      => $focusArea,
+                    'reason'          => $reason,
+                    'rescan_performed'=> true,
+                ]);
+            }
+
             $imageInfo = getimagesize($imagePath);
             if (!$imageInfo) {
                 return array_merge($this->yoloUnavailable(), [
@@ -603,9 +618,10 @@ PROMPT;
                 // GD cannot load this format — re-run full scan as fallback
                 $result = $this->toolRunYoloScan($imagePath);
                 return array_merge($result, [
-                    'rescan_note' => "Could not crop image (unsupported format). Full rescan performed instead.",
-                    'focus_area'  => $focusArea,
-                    'reason'      => $reason,
+                    'rescan_note'     => "Could not crop image (unsupported format). Full rescan performed instead.",
+                    'focus_area'      => $focusArea,
+                    'reason'          => $reason,
+                    'rescan_performed'=> true,
                 ]);
             }
 
@@ -624,18 +640,22 @@ PROMPT;
             @unlink($tempPath);
 
             // Annotate the result so Claude understands the context
-            $result['rescan_note'] = "Focused rescan on '{$focusArea}' region ({$cropW}x{$cropH}px crop from {$width}x{$height}px original). Reason: {$reason}";
-            $result['focus_area']  = $focusArea;
-            $result['reason']      = $reason;
+            $result['rescan_note']      = "Focused rescan on '{$focusArea}' region ({$cropW}x{$cropH}px crop from {$width}x{$height}px original). Reason: {$reason}";
+            $result['focus_area']       = $focusArea;
+            $result['reason']           = $reason;
+            $result['rescan_performed'] = true;
 
             return $result;
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            // Catch \Throwable not \Exception — PHP 8 undefined function calls throw \Error
             Log::error('Focused rescan failed: ' . $e->getMessage());
-            return array_merge($this->yoloUnavailable(), [
-                'rescan_note' => 'Focused rescan failed — original scan results stand. Error: ' . $e->getMessage(),
-                'focus_area'  => $focusArea,
-                'reason'      => $reason,
+            $fallback = $this->toolRunYoloScan($imagePath);
+            return array_merge($fallback, [
+                'rescan_note'     => 'Focused rescan encountered an error — full original scan used. Error: ' . $e->getMessage(),
+                'focus_area'      => $focusArea,
+                'reason'          => $reason,
+                'rescan_performed'=> false,
             ]);
         }
     }
