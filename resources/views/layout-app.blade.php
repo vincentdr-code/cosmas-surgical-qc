@@ -4,14 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'COSMAS SENTRY') }}</title>
+    <title>{{ config('app.name', 'COSMAS DAMIAN') }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
     /* ═══════════════════════════════════════════════════════════════
-       COSMAS SENTRY — DISCOMORPHISM DESIGN SYSTEM v3
+       COSMAS DAMIAN — DISCOMORPHISM DESIGN SYSTEM v3
        Near-black · Chrome mirror palette · Facet tile texture
     ═══════════════════════════════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; border-radius: 0 !important; }

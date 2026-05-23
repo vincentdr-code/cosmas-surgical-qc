@@ -14,7 +14,7 @@
                     <p class="text-blue-400 text-sm font-semibold uppercase tracking-widest mb-2">Architecture Overview</p>
                     <h1 class="text-3xl font-bold mb-4">AI-Powered Quality Control Pipeline</h1>
                     <p class="text-slate-300 max-w-2xl mx-auto">
-                        Cosmas Sentry uses a two-stage AI pipeline that mirrors how an expert QC inspector actually reasons —
+                        Cosmas Damian uses a two-stage AI pipeline that mirrors how an expert QC inspector actually reasons —
                         fast computer vision pre-screening followed by contextual AI analysis with regulatory awareness.
                     </p>
                 </div>
@@ -208,7 +208,7 @@
                 </div>
                 <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                     <p class="text-sm text-amber-800">
-                        <strong>Positioning:</strong> Cosmas Sentry is designed to <em>support</em> FDA-compliant workflows, not to replace regulatory review.
+                        <strong>Positioning:</strong> Cosmas Damian is designed to <em>support</em> FDA-compliant workflows, not to replace regulatory review.
                         The system makes recommendations; qualified personnel make final decisions. This architecture is consistent with FDA guidance on AI/ML-based Software as a Medical Device (SaMD).
                     </p>
                 </div>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cosmas Sentry | AI Defect Detection for Surgical Instruments</title>
+    <title>Cosmas Damian | AI Defect Detection for Surgical Instruments</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .gradient-hero { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1e40af 100%); }
@@ -23,7 +23,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                     </svg>
                 </div>
-                <span class="font-bold text-lg tracking-tight">Cosmas Sentry</span>
+                <span class="font-bold text-lg tracking-tight">Cosmas Damian</span>
                 <span class="hidden sm:inline text-xs text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full">AI Quality Control</span>
             </div>
             <div class="flex items-center gap-4">
@@ -47,7 +47,7 @@
             </h1>
 
             <p class="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto mb-10 leading-relaxed">
-                Cosmas Sentry replaces manual visual inspection with a two-stage AI pipeline —
+                Cosmas Damian replaces manual visual inspection with a two-stage AI pipeline —
                 YOLOv8s computer vision pre-screening followed by Claude reasoning —
                 reducing QC costs by <strong class="text-white">93%</strong> while improving defect catch rates.
             </p>
@@ -149,7 +149,7 @@
     <section class="bg-gray-900 px-6 py-20">
         <div class="max-w-5xl mx-auto text-center">
             <h2 class="text-3xl font-bold mb-4">Built for FDA-Regulated Environments</h2>
-            <p class="text-gray-400 max-w-2xl mx-auto mb-10">Every inspection creates an immutable electronic record. Cosmas Sentry is designed to support — not replace — human quality control judgment.</p>
+            <p class="text-gray-400 max-w-2xl mx-auto mb-10">Every inspection creates an immutable electronic record. Cosmas Damian is designed to support — not replace — human quality control judgment.</p>
             <div class="grid sm:grid-cols-3 gap-6">
                 @foreach([
                     ['title' => 'FDA 21 CFR Part 11', 'desc' => 'Electronic records with user ID, timestamp, and AI decision logged on every inspection.'],
@@ -177,7 +177,7 @@
 
     <!-- Footer -->
     <footer class="bg-gray-950 border-t border-white/10 px-6 py-8 text-center text-gray-500 text-sm">
-        <p>Cosmas Sentry · AI-Powered QC for Surgical Instrument Manufacturing (SIC 3841)</p>
+        <p>Cosmas Damian · AI-Powered QC for Surgical Instrument Manufacturing (SIC 3841)</p>
         <p class="mt-1">Built with YOLOv8s + Claude API · Deployed on AWS · CUA AI Vibe Coding Competition 2026</p>
     </footer>
 

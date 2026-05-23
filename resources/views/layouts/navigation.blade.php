@@ -7,7 +7,7 @@
                 <span style="color:#C9963E; font-size:12px; font-weight:700; line-height:1;">CS</span>
             </div>
             <span style="font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; color:#E8EDF2; letter-spacing:0.06em;">
-                COSMAS·<span style="color:#C9963E;">SENTRY</span>
+                COSMAS·<span style="color:#C9963E;">DAMIAN</span>
             </span>
         </a>
 

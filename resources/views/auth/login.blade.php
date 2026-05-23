@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>COSMAS·SENTRY // ACCESS CONTROL</title>
+    <title>COSMAS·DAMIAN // ACCESS CONTROL</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -303,7 +303,7 @@
     {{-- Wordmark --}}
     <div class="wordmark">
         <div class="wordmark-icon"><span>CS</span></div>
-        <div class="wordmark-text">COSMAS·<em>SENTRY</em></div>
+        <div class="wordmark-text">COSMAS·<em>DAMIAN</em></div>
     </div>
 
     {{-- Auth Card --}}
@@ -395,7 +395,7 @@
         </div>
     </div>
 
-    <div class="below-card">COSMAS·SENTRY &copy; {{ date('Y') }} — AUTHORIZED PERSONNEL ONLY</div>
+    <div class="below-card">COSMAS·DAMIAN &copy; {{ date('Y') }} — AUTHORIZED PERSONNEL ONLY</div>
 
 </div>
 </body>

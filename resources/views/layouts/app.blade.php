@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'COSMAS SENTRY') }}</title>
+    <title>{{ config('app.name', 'COSMAS DAMIAN') }}</title>
 
     {{-- Google Fonts: JetBrains Mono --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +15,7 @@
 
     <style>
     /* ═══════════════════════════════════════════════════
-       TACTICAL TELEMETRY DESIGN SYSTEM — COSMAS SENTRY
+       TACTICAL TELEMETRY DESIGN SYSTEM — COSMAS DAMIAN
        Navy #0B1F3A · Gold #C9963E · Steel #4A7C9E
     ═══════════════════════════════════════════════════ */
 

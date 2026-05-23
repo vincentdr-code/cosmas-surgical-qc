@@ -267,4 +267,255 @@
     })();
     </script>
     @endpush
+
+    {{-- ═══ DAMIAN — Floating QC Intelligence Panel ═══ --}}
+
+    {{-- Toggle tab on right edge --}}
+    <div id="damianTab" onclick="toggleDamian()" style="
+        position:fixed; right:0; top:50%; transform:translateY(-50%);
+        background:#C9963E; color:#060F1E;
+        font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700;
+        letter-spacing:0.12em; writing-mode:vertical-rl; text-orientation:mixed;
+        padding:18px 8px; cursor:pointer; z-index:8888;
+        border-radius:4px 0 0 4px;
+        box-shadow:-3px 0 12px rgba(201,150,62,0.3);
+        transition:background 0.2s;
+    " onmouseover="this.style.background='#E8A84A'" onmouseout="this.style.background='#C9963E'">
+        ◈ ASK DAMIAN
+    </div>
+
+    {{-- Side drawer --}}
+    <div id="damianDrawer" style="
+        position:fixed; right:-440px; top:0; bottom:0; width:420px;
+        background:#0B1A2E; border-left:1px solid rgba(201,150,62,0.3);
+        z-index:9000; transition:right 0.3s cubic-bezier(0.16,1,0.3,1);
+        display:flex; flex-direction:column;
+        box-shadow:-8px 0 32px rgba(0,0,0,0.6);
+        font-family:'JetBrains Mono',monospace;
+    ">
+        {{-- Drawer header --}}
+        <div style="
+            display:flex; align-items:center; justify-content:space-between;
+            padding:14px 16px; border-bottom:1px solid rgba(201,150,62,0.2);
+            background:#060F1E; flex-shrink:0;
+        ">
+            <div>
+                <div style="color:#C9963E; font-size:11px; font-weight:700; letter-spacing:0.14em;">[ DAMIAN ]</div>
+                <div style="color:rgba(138,155,174,0.6); font-size:9px; letter-spacing:0.08em; margin-top:2px;">QC INTELLIGENCE — PATRON SAINT OF MEDICINE</div>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button onclick="expandDamian()" title="Full screen" style="
+                    background:rgba(201,150,62,0.1); border:1px solid rgba(201,150,62,0.3);
+                    color:#C9963E; font-family:'JetBrains Mono',monospace; font-size:9px;
+                    padding:4px 8px; cursor:pointer; letter-spacing:0.08em;">⤢ EXPAND</button>
+                <button onclick="toggleDamian()" style="
+                    background:transparent; border:none; color:#8A9BAE;
+                    font-size:16px; cursor:pointer; line-height:1;">✕</button>
+            </div>
+        </div>
+
+        {{-- Suggested questions --}}
+        <div style="padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.05); flex-shrink:0;">
+            <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                @foreach([
+                    "What's the defect rate this week?",
+                    "Which defect type is most common?",
+                    "How many FAILs in 30 days?",
+                    "Highest risk inspections?",
+                    "Average confidence score?",
+                ] as $q)
+                <button onclick="damianSetQ(this.dataset.q)" data-q="{{ $q }}"
+                    style="background:rgba(201,150,62,0.07); border:1px solid rgba(201,150,62,0.2);
+                           color:rgba(138,155,174,0.8); font-family:'JetBrains Mono',monospace;
+                           font-size:8px; letter-spacing:0.06em; padding:3px 7px; cursor:pointer;">
+                    {{ $q }}
+                </button>
+                @endforeach
+            </div>
+        </div>
+
+        {{-- Chat history --}}
+        <div id="damianChat" style="flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:12px;"></div>
+
+        {{-- Input --}}
+        <div style="padding:12px 14px; border-top:1px solid rgba(201,150,62,0.2); background:#060F1E; flex-shrink:0;">
+            <div style="display:flex; gap:6px;">
+                <textarea id="damianInput" rows="2" placeholder="Ask about your QC data..."
+                    style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(201,150,62,0.25);
+                           color:#E8EDF2; font-family:'JetBrains Mono',monospace; font-size:10px;
+                           padding:8px 10px; resize:none; outline:none;"></textarea>
+                <button id="damianBtn" onclick="damianQuery()"
+                    style="background:#C9963E; color:#060F1E; font-family:'JetBrains Mono',monospace;
+                           font-size:9px; font-weight:700; letter-spacing:0.1em; padding:8px 10px;
+                           border:none; cursor:pointer; text-transform:uppercase; white-space:nowrap; align-self:stretch;">
+                    ASK→
+                </button>
+            </div>
+            <div style="color:rgba(138,155,174,0.35); font-size:8px; letter-spacing:0.06em; margin-top:5px;">
+                READ-ONLY · NL→SQL · CLAUDE HAIKU · 21 CFR PART 11
+            </div>
+        </div>
+    </div>
+
+    {{-- Full-screen overlay --}}
+    <div id="damianFullscreen" style="
+        display:none; position:fixed; inset:0; z-index:9999;
+        background:#060F1E; flex-direction:column;
+        font-family:'JetBrains Mono',monospace;
+    ">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 24px;
+                    border-bottom:1px solid rgba(201,150,62,0.25); background:#0B1A2E; flex-shrink:0;">
+            <div>
+                <div style="color:#C9963E; font-size:13px; font-weight:700; letter-spacing:0.14em;">[ DAMIAN — QC INTELLIGENCE ]</div>
+                <div style="color:rgba(138,155,174,0.5); font-size:9px; letter-spacing:0.08em; margin-top:2px;">PATRON SAINT OF MEDICINE & SURGERY</div>
+            </div>
+            <button onclick="collapseDamian()" style="
+                background:rgba(201,150,62,0.1); border:1px solid rgba(201,150,62,0.3);
+                color:#C9963E; font-family:'JetBrains Mono',monospace; font-size:9px;
+                padding:6px 14px; cursor:pointer; letter-spacing:0.08em;">⤡ COLLAPSE</button>
+        </div>
+        <div style="display:flex; gap:16px; padding:16px 24px; flex-shrink:0; flex-wrap:wrap;">
+            @foreach([
+                "What's the defect rate this week?",
+                "Which defect type is most common?",
+                "How many FAILs in the last 30 days?",
+                "Show me the highest risk inspections",
+                "What's the average confidence score?",
+            ] as $q)
+            <button onclick="damianSetQ(this.dataset.q)" data-q="{{ $q }}"
+                style="background:rgba(201,150,62,0.08); border:1px solid rgba(201,150,62,0.25);
+                       color:#8A9BAE; font-family:'JetBrains Mono',monospace; font-size:9px;
+                       letter-spacing:0.08em; padding:5px 10px; cursor:pointer;">
+                {{ $q }}
+            </button>
+            @endforeach
+        </div>
+        <div id="damianFsChat" style="flex:1; overflow-y:auto; padding:0 24px; display:flex; flex-direction:column; gap:14px;"></div>
+        <div style="padding:16px 24px; border-top:1px solid rgba(201,150,62,0.2); background:#0B1A2E; flex-shrink:0;">
+            <div style="display:flex; gap:10px; max-width:900px; margin:0 auto;">
+                <textarea id="damianFsInput" rows="2" placeholder="Ask about your QC data..."
+                    style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(201,150,62,0.25);
+                           color:#E8EDF2; font-family:'JetBrains Mono',monospace; font-size:11px;
+                           padding:10px 14px; resize:none; outline:none;"></textarea>
+                <button id="damianFsBtn" onclick="damianQuery(true)"
+                    style="background:#C9963E; color:#060F1E; font-family:'JetBrains Mono',monospace;
+                           font-size:10px; font-weight:700; letter-spacing:0.1em; padding:10px 20px;
+                           border:none; cursor:pointer; text-transform:uppercase; align-self:stretch;">
+                    ASK DAMIAN →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+    let damianOpen = false;
+    let damianFs = false;
+    const damianHistory = [];
+
+    function toggleDamian() {
+        damianOpen = !damianOpen;
+        document.getElementById('damianDrawer').style.right = damianOpen ? '0' : '-440px';
+        document.getElementById('damianTab').style.display = damianOpen ? 'none' : 'block';
+    }
+
+    function expandDamian() {
+        damianFs = true;
+        const fs = document.getElementById('damianFullscreen');
+        fs.style.display = 'flex';
+        // Sync chat history to fullscreen
+        renderDamianChat(true);
+    }
+
+    function collapseDamian() {
+        damianFs = false;
+        document.getElementById('damianFullscreen').style.display = 'none';
+    }
+
+    function damianSetQ(q) {
+        document.getElementById('damianInput').value = q;
+        document.getElementById('damianFsInput').value = q;
+        if (!damianOpen) toggleDamian();
+    }
+
+    async function damianQuery(fullscreen = false) {
+        const inputId = fullscreen ? 'damianFsInput' : 'damianInput';
+        const btnId   = fullscreen ? 'damianFsBtn'   : 'damianBtn';
+        const q = document.getElementById(inputId).value.trim();
+        if (!q) return;
+
+        const btn = document.getElementById(btnId);
+        btn.textContent = '...';
+        btn.disabled = true;
+
+        // Add user bubble
+        damianHistory.push({ role: 'user', text: q });
+        renderDamianChat(fullscreen);
+
+        const start = Date.now();
+        try {
+            const res = await fetch('{{ route("intel.query") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ question: q }),
+            });
+            const data = await res.json();
+            const elapsed = ((Date.now() - start) / 1000).toFixed(1);
+            damianHistory.push({ role: 'damian', text: data.answer || 'No data found.', time: elapsed });
+        } catch(e) {
+            damianHistory.push({ role: 'damian', text: 'Error: ' + e.message, time: '?' });
+        }
+
+        document.getElementById(inputId).value = '';
+        renderDamianChat(fullscreen);
+        btn.textContent = fullscreen ? 'ASK DAMIAN →' : 'ASK→';
+        btn.disabled = false;
+    }
+
+    function renderDamianChat(fullscreen) {
+        const chatId = fullscreen ? 'damianFsChat' : 'damianChat';
+        const chat = document.getElementById(chatId);
+        if (!chat) return;
+        chat.innerHTML = damianHistory.map(m => {
+            if (m.role === 'user') return `
+                <div style="text-align:right;">
+                    <div style="display:inline-block; background:rgba(201,150,62,0.12); border:1px solid rgba(201,150,62,0.25);
+                                color:#C9963E; font-size:10px; padding:7px 10px; max-width:85%; text-align:left;">
+                        ${m.text}
+                    </div>
+                </div>`;
+            return `
+                <div>
+                    <div style="color:rgba(138,155,174,0.5); font-size:8px; letter-spacing:0.1em; margin-bottom:4px;">◈ DAMIAN</div>
+                    <div style="color:#E8EDF2; font-size:10px; line-height:1.7; white-space:pre-wrap; border-left:2px solid rgba(201,150,62,0.3); padding-left:10px;">
+                        ${m.text}
+                    </div>
+                    ${m.time ? `<div style="color:rgba(138,155,174,0.35); font-size:8px; margin-top:4px;">${m.time}s</div>` : ''}
+                </div>`;
+        }).join('');
+        chat.scrollTop = chat.scrollHeight;
+
+        // Also sync the other panel
+        const otherId = fullscreen ? 'damianChat' : 'damianFsChat';
+        const other = document.getElementById(otherId);
+        if (other) { other.innerHTML = chat.innerHTML; other.scrollTop = other.scrollHeight; }
+    }
+
+    // Enter to submit
+    ['damianInput','damianFsInput'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                damianQuery(id === 'damianFsInput');
+            }
+        });
+    });
+    </script>
+    @endpush
+
 </x-app-layout>

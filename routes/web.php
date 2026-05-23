@@ -40,6 +40,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/audit-log', [InspectionController::class, 'auditLog'])->name('inspections.audit-log');
     Route::get('/roi', [RoiController::class, 'index'])->name('roi');
 
+
+    // Damian -- QC Intelligence (NL query)
+    Route::get('/damian', [App\Http\Controllers\IntelController::class, 'index'])->name('intel.index');
+    Route::post('/damian/query', [App\Http\Controllers\IntelController::class, 'query'])->name('intel.query');
     // Settings routes
     Route::get('/settings/threshold', [App\Http\Controllers\SettingsController::class, 'threshold'])->name('settings.threshold');
     Route::patch('/settings/threshold', [App\Http\Controllers\SettingsController::class, 'updateThreshold'])->name('settings.threshold.update');

@@ -6,7 +6,7 @@
                     [ COMMAND CENTER ]
                 </div>
                 <h2 style="font-size:16px; font-weight:700; color:var(--text); letter-spacing:0.04em;">
-                    COSMAS · SENTRY
+                    COSMAS · DAMIAN
                     <span style="color:var(--muted); font-weight:400; font-size:11px; margin-left:14px; letter-spacing:0.06em;">
                         AI Surgical Instrument Quality Control
                     </span>
