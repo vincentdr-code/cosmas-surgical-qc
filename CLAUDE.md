@@ -1,4 +1,4 @@
-# COSMAS SENTRY — CLAUDE.md
+# COSMAS DAMIAN — CLAUDE.md
 
 > This file is the authoritative guide for any AI agent (Claude or otherwise) working on this codebase.
 > Read this before touching anything. It overrides assumptions.
@@ -7,13 +7,13 @@
 
 ## What This Project Is
 
-**COSMAS SENTRY** is an AI-powered defect detection system for surgical instrument manufacturing (SIC 3841).
+**COSMAS DAMIAN** is an AI-powered defect detection system for surgical instrument manufacturing (SIC 3841).
 
 It answers: *How can AI-powered defect detection reduce QC costs while improving patient safety and maintaining FDA compliance?*
 
 Built for the **CUA AI Vibe Coding Competition** (deadline June 13, 2026). Goal: 100/100 points.
 
-Live URL: **https://cosmas-sentry.duckdns.org**
+Live URL: **https://cosmas-damian.duckdns.org**
 GitHub: **https://github.com/vincentdr-code/cosmas-surgical-qc**
 Marketing site: **https://cosmas-website.vercel.app**
 
