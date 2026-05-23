@@ -1,4 +1,4 @@
-# COSMAS SENTRY — AI-Powered Defect Detection for Surgical Instrument Manufacturing
+﻿# COSMAS SENTRY — AI-Powered Defect Detection for Surgical Instrument Manufacturing
 
 [![CI](https://github.com/vincentdr-code/cosmas-surgical-qc/actions/workflows/ci.yml/badge.svg)](https://github.com/vincentdr-code/cosmas-surgical-qc/actions/workflows/ci.yml)
 
@@ -21,30 +21,46 @@ The answer the system demonstrates: $0.14 saved per inspection unit vs. manual r
 
 ## Architecture Overview
 
-```
-Browser / React SPA (Vite)
-        │
-        ▼
-   nginx (HTTPS, port 443)
-   ├── /upload, /dashboard, /home, /audit-log, /results/*  → PHP-FPM (Laravel)
-   ├── /css/*                                              → Laravel public/
-   └── /*                                                  → React dist/ (SPA catch-all)
-        │
-        ▼
-   Laravel 11 Application
-   ├── InspectionController       — thin HTTP layer, delegates to orchestrator
-   ├── InspectionOrchestratorService  — Claude agent loop (up to 12 iterations)
-   ├── DashboardController        — KPI aggregation, 14-day trend data
-   └── RoiController              — ROI calculator
-        │
-        ├── Claude API (claude-sonnet-4-6)
-        │   tool_use loop: up to 12 iterations, 5 tools, 4096 max_tokens
-        │
-        └── YOLOv8s Service (FastAPI, port 8001, localhost only)
-                /health  /detect  /reload-model
+```mermaid
+graph TD
+    subgraph Client["Client - Any Device"]
+        BR[Browser / React SPA]
+    end
+
+    subgraph EC2["AWS EC2 t2.micro - Free Tier"]
+        N["nginx HTTPS :443"]
+
+        subgraph Laravel["Laravel 11 - PHP-FPM 8.5"]
+            IC[InspectionController]
+            OS[InspectionOrchestratorService]
+            DC[DashboardController]
+            DB[(SQLite)]
+        end
+
+        subgraph YOLO["FastAPI YOLOv8 :8001"]
+            S1["Stage 1 - Instrument Classifier
+yolov8n_real_finetuned.pt - 6 classes"]
+            S2["Stage 2 - Defect Detector
+yolov8s_defect_v3.pt - 5 classes - mAP50=0.764"]
+            S1 --> S2
+        end
+    end
+
+    subgraph ClaudeAPI["Anthropic Claude API"]
+        CL["claude-sonnet-4-6
+Tool-use loop - 5 tools - up to 12 iterations"]
+    end
+
+    BR -->|HTTPS| N
+    N -->|routes| IC
+    IC --> OS
+    OS -->|Tool 2 run_yolo_scan| YOLO
+    OS -->|Tools 1 3 4 5| ClaudeAPI
+    ClaudeAPI --> OS
+    OS --> DB
+    DC --> DB
 ```
 
-**Infrastructure:** AWS EC2 t2.micro (Free Tier) · Ubuntu 22.04 · SQLite 3 · PHP-FPM 8.5 · systemd service for YOLO
 
 ---
 
@@ -220,6 +236,32 @@ Demo credentials: `admin@cosmas-sentry.com` / `Z7%Gui56`
 
 ---
 
+
+---
+
+## Model Performance and Validation Baseline
+
+| Metric | Defect Model (yolov8s_defect_v3) | Instrument Classifier (yolov8n) |
+|--------|----------------------------------|---------------------------------|
+| **mAP50** | **0.764** | N/A (classification task) |
+| Random baseline | ~0.20 (5-class uniform) | -- |
+| Human inspector est. | ~0.82-0.87 (ISO 2859-1 literature) | -- |
+| Training images | 10,764 (NEU-DET + Rust + Steel + Synthetic) | Fine-tuned on real instruments |
+| Training epochs | 77 (early stop at ~57) | -- |
+
+**What mAP50 = 0.764 means:** The model correctly detects and localizes ~76 of every 100 defective instruments. The remaining ~24 are missed or misclassified. This is why human review of all FLAGGED and borderline results is a hard architectural requirement, not a workaround.
+
+### Verification and Validation (V&V) Status
+
+**Current status:** Development baseline established.
+
+A production V&V protocol per **FDA 21 CFR 820.30** and **ISO 13485 Clause 7.3.7** would require:
+1. Statistically powered sample set from a qualified manufacturing partner
+2. Blinded comparison against certified human QC inspectors as the gold standard
+3. Pre-specified minimum sensitivity and specificity thresholds (not post-hoc)
+4. Third-party review of protocol and results
+
+This is the documented next milestone for any production deployment. See [ADR-006](docs/adr/ADR-006-ai-ethics-samd-classification.md) for full regulatory positioning.
 ## EC2 Deployment
 
 ```powershell
