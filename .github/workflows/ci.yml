@@ -31,8 +31,8 @@ jobs:
 
       - name: Create Vite manifest stub for tests
         run: |
-          mkdir -p public/build
-          printf '{"resources/js/app.jsx":{"file":"assets/app.js","src":"resources/js/app.jsx","isEntry":true},"resources/css/app.css":{"file":"assets/app.css","src":"resources/css/app.css","isEntry":true}}' > public/build/manifest.json
+          mkdir -p public/build/.vite
+          printf '{"resources/js/app.jsx":{"file":"assets/app.js","src":"resources/js/app.jsx","isEntry":true},"resources/css/app.css":{"file":"assets/app.css","src":"resources/css/app.css","isEntry":true}}' > public/build/.vite/manifest.json
 
       - name: Run PHP syntax check
         run: find app -name "*.php" -exec php -l {} \; | grep -v "No syntax errors" || true
