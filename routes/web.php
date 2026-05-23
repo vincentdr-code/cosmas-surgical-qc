@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/upload', [InspectionController::class, 'showUploadForm'])->name('inspections.upload');
     Route::post('/upload', [InspectionController::class, 'upload'])->name('inspections.store');
     Route::get('/results/{inspection}', [InspectionController::class, 'results'])->name('inspections.results');
+    Route::get('/results/{inspection}/dhr', [InspectionController::class, 'dhr'])->name('inspections.dhr');
     Route::get('/audit-log', [InspectionController::class, 'auditLog'])->name('inspections.audit-log');
     Route::get('/roi', [RoiController::class, 'index'])->name('roi');
 

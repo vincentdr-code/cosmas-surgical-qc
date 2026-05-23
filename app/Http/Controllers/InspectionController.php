@@ -130,4 +130,10 @@ class InspectionController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
+
+    public function dhr(\App\Models\Inspection $inspection)
+    {
+        return view('inspections.dhr', compact('inspection'));
+    }
+
 }

@@ -21,6 +21,10 @@
                    style="padding:8px 18px; border:1px solid var(--gold-dim); color:var(--muted); font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; text-decoration:none;">
                     AUDIT LOG
                 </a>
+                <a href="{{ route('inspections.dhr', $inspection->id) }}" target="_blank"
+                   style="padding:8px 18px; border:1px solid rgba(46,204,113,0.4); color:#2ECC71; font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; text-decoration:none;">
+                    ⬇ DHR PDF
+                </a>
             </div>
         </div>
     </x-slot>
