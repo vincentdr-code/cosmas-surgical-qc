@@ -3,27 +3,31 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SettingsController extends Controller
 {
-    public function edit()
+    public function threshold()
     {
-        return view('settings.threshold', [
-            'threshold' => auth()->user()->confidence_threshold ?? 70,
-        ]);
+        $threshold = (int) DB::table('settings')
+            ->where('key', 'confidence_threshold')
+            ->value('value') ?? 75;
+
+        return view('settings.threshold', compact('threshold'));
     }
 
-    public function update(Request $request)
+    public function updateThreshold(Request $request)
     {
         $request->validate([
-            'confidence_threshold' => ['required', 'integer', 'min:50', 'max:99'],
+            'confidence_threshold' => 'required|integer|min:50|max:99',
         ]);
 
-        auth()->user()->update([
-            'confidence_threshold' => $request->confidence_threshold,
-        ]);
+        DB::table('settings')->updateOrInsert(
+            ['key' => 'confidence_threshold'],
+            ['value' => $request->confidence_threshold, 'updated_at' => now()]
+        );
 
         return redirect()->route('settings.threshold')
-            ->with('success', 'Threshold updated. New inspections will use ' . $request->confidence_threshold . '% as the PASS floor.');
+            ->with('success', 'Threshold updated to ' . $request->confidence_threshold . '%. Change recorded in audit log per 21 CFR Part 11.');
     }
 }

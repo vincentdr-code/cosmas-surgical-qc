@@ -40,6 +40,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/audit-log', [InspectionController::class, 'auditLog'])->name('inspections.audit-log');
     Route::get('/roi', [RoiController::class, 'index'])->name('roi');
 
+    // Settings routes
+    Route::get('/settings/threshold', [App\Http\Controllers\SettingsController::class, 'threshold'])->name('settings.threshold');
+    Route::patch('/settings/threshold', [App\Http\Controllers\SettingsController::class, 'updateThreshold'])->name('settings.threshold.update');
+
     // Profile routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
