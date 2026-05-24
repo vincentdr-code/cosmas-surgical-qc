@@ -1,5 +1,5 @@
 <svg viewBox="0 0 900 620" xmlns="http://www.w3.org/2000/svg" role="img">
-  <title>COSMAS DAMIAN System Architecture</title>
+  <title>DAMIAN System Architecture</title>
   <desc>System architecture showing user browser connecting to EC2 via HTTPS, through nginx to React SPA and Laravel, then into the two-stage YOLO pipeline and 5-tool Claude agentic loop, with results stored in SQLite and exported as DHR PDFs.</desc>
 
   <defs>
@@ -22,7 +22,7 @@
 
   <!-- Title bar -->
   <rect width="900" height="52" fill="#0f172a"/>
-  <text x="450" y="22" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="15" font-weight="700" fill="#f8fafc">COSMAS DAMIAN — System Architecture</text>
+  <text x="450" y="22" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="15" font-weight="700" fill="#f8fafc">DAMIAN — System Architecture</text>
   <text x="450" y="41" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#64748b">AI-Powered Surgical Instrument QC · cosmas-damian.duckdns.org · EC2 t2.micro · AWS Free Tier</text>
 
   <!-- ── TIER 1: CLIENT + INFRA ── -->

@@ -1,4 +1,4 @@
-# COSMAS DAMIAN — AI-Powered Defect Detection for Surgical Instrument Manufacturing
+# DAMIAN — AI-Powered Defect Detection for Surgical Instrument Manufacturing
 
 [![CI](https://github.com/vincentdr-code/cosmas-surgical-qc/actions/workflows/ci.yml/badge.svg)](https://github.com/vincentdr-code/cosmas-surgical-qc/actions/workflows/ci.yml)
 
@@ -11,7 +11,7 @@
 
 ## What This Is
 
-COSMAS DAMIAN is a production-deployed AI quality-control system for surgical instrument manufacturing (SIC 3841). A QC inspector uploads a photo of a surgical instrument; the system runs it through a five-step autonomous AI agent pipeline and returns a PASS / FAIL / FLAGGED verdict with a confidence score, Composite Risk Score, regulatory citation, and cost-based decision recommendation — all in under 60 seconds.
+DAMIAN is a production-deployed AI quality-control system built by Cosmas for surgical instrument manufacturing (SIC 3841). A QC inspector uploads a photo of a surgical instrument; the system runs it through a five-step autonomous AI agent pipeline and returns a PASS / FAIL / FLAGGED verdict with a confidence score, Composite Risk Score, regulatory citation, and cost-based decision recommendation — all in under 60 seconds.
 
 The core question: **How can AI-powered defect detection reduce QC costs while improving patient safety and maintaining FDA compliance?**
 
@@ -21,7 +21,7 @@ The answer the system demonstrates: $0.14 saved per inspection unit vs. manual r
 
 ## Architecture Overview
 
-![COSMAS DAMIAN System Architecture](architecture.svg)
+![DAMIAN System Architecture](architecture.svg)
 
 ```
 Browser / React SPA (Vite)
@@ -268,7 +268,7 @@ Tests cover: login page loads · auth-protected routes redirect · `/api/v1/heal
 
 ## Ethical & Regulatory Stance
 
-COSMAS DAMIAN augments human judgment — it does not replace it.
+DAMIAN augments human judgment — it does not replace it.
 
 - Every verdict includes confidence score and full reasoning chain
 - FLAGGED items route to human review with cost justification

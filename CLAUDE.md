@@ -1,4 +1,4 @@
-# COSMAS DAMIAN — CLAUDE.md
+# DAMIAN by Cosmas — CLAUDE.md
 
 > This file is the authoritative guide for any AI agent (Claude or otherwise) working on this codebase.
 > Read this before touching anything. It overrides assumptions.
@@ -7,7 +7,7 @@
 
 ## What This Project Is
 
-**COSMAS DAMIAN** is an AI-powered defect detection system for surgical instrument manufacturing (SIC 3841).
+**DAMIAN** (by Cosmas) is an AI-powered defect detection system for surgical instrument manufacturing (SIC 3841).
 
 It answers: *How can AI-powered defect detection reduce QC costs while improving patient safety and maintaining FDA compliance?*
 
