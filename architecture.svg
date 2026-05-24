@@ -1,0 +1,202 @@
+<svg viewBox="0 0 900 620" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>COSMAS DAMIAN System Architecture</title>
+  <desc>System architecture showing user browser connecting to EC2 via HTTPS, through nginx to React SPA and Laravel, then into the two-stage YOLO pipeline and 5-tool Claude agentic loop, with results stored in SQLite and exported as DHR PDFs.</desc>
+
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+    </marker>
+    <marker id="arr-b" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/>
+    </marker>
+    <marker id="arr-p" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#8b5cf6"/>
+    </marker>
+    <marker id="arr-g" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#10b981"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="620" fill="#f8fafc" rx="0"/>
+
+  <!-- Title bar -->
+  <rect width="900" height="52" fill="#0f172a"/>
+  <text x="450" y="22" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="15" font-weight="700" fill="#f8fafc">COSMAS DAMIAN — System Architecture</text>
+  <text x="450" y="41" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#64748b">AI-Powered Surgical Instrument QC · cosmas-damian.duckdns.org · EC2 t2.micro · AWS Free Tier</text>
+
+  <!-- ── TIER 1: CLIENT + INFRA ── -->
+
+  <!-- Browser -->
+  <rect x="18" y="72" width="104" height="68" rx="7" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="70" y="96" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="18">&#x1F310;</text>
+  <text x="70" y="114" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="11" font-weight="600" fill="#0f172a">Browser</text>
+  <text x="70" y="129" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#64748b">Image Upload</text>
+
+  <!-- HTTPS arrow -->
+  <line x1="122" y1="106" x2="162" y2="106" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="142" y="100" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#64748b">HTTPS</text>
+
+  <!-- EC2 Container -->
+  <rect x="166" y="62" width="718" height="212" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="176" y="77" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" font-weight="600" fill="#2563eb">EC2 t2.micro  ·  18.216.244.44  ·  Ubuntu 22</text>
+
+  <!-- nginx -->
+  <rect x="178" y="84" width="112" height="56" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="234" y="107" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="12" font-weight="700" fill="#fff">nginx</text>
+  <text x="234" y="122" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#93c5fd">SSL · 443 / 80</text>
+  <text x="234" y="135" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#93c5fd">301 redirect</text>
+
+  <!-- nginx → React -->
+  <line x1="290" y1="100" x2="330" y2="100" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arr-b)"/>
+  <!-- nginx → Laravel (down) -->
+  <line x1="234" y1="140" x2="234" y2="166" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arr-b)"/>
+
+  <!-- React SPA -->
+  <rect x="330" y="84" width="148" height="56" rx="6" fill="#0c4a6e" stroke="#0ea5e9" stroke-width="1.5"/>
+  <text x="404" y="107" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="12" font-weight="700" fill="#fff">React SPA</text>
+  <text x="404" y="122" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#7dd3fc">Vite · Tailwind</text>
+  <text x="404" y="135" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#7dd3fc">DAMIAN Chatbot UI</text>
+
+  <!-- Laravel -->
+  <rect x="178" y="166" width="300" height="90" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="328" y="190" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="12" font-weight="700" fill="#fff">Laravel 11  ·  PHP-FPM 8.5</text>
+  <text x="328" y="207" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#93c5fd">InspectionController  ·  Auth  ·  Routing</text>
+  <text x="328" y="222" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#93c5fd">DAMIAN NL&#x2192;SQL  ·  DHR PDF Export</text>
+  <text x="328" y="237" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#93c5fd">Audit Log  ·  Settings  ·  Cost KPIs</text>
+
+  <!-- FastAPI service (inside EC2, right) -->
+  <rect x="500" y="84" width="372" height="190" rx="7" fill="#fdf4ff" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="686" y="100" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" font-weight="600" fill="#9333ea">FastAPI · uvicorn · localhost:8001</text>
+
+  <!-- Stage 1 YOLO -->
+  <rect x="512" y="107" width="170" height="68" rx="5" fill="#581c87" stroke="#c084fc" stroke-width="1.2"/>
+  <text x="597" y="127" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="10.5" font-weight="700" fill="#fff">Stage 1 — Classifier</text>
+  <text x="597" y="143" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#e9d5ff">yolov8n_real_finetuned.pt</text>
+  <text x="597" y="157" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#e9d5ff">6 classes · scalpel, forceps…</text>
+  <text x="597" y="169" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#e9d5ff">Instrument type &#x2192; Stage 2</text>
+
+  <!-- S1 → S2 arrow -->
+  <line x1="597" y1="175" x2="597" y2="192" stroke="#c084fc" stroke-width="1.5" marker-end="url(#arr-p)"/>
+
+  <!-- Stage 2 YOLO -->
+  <rect x="512" y="192" width="170" height="68" rx="5" fill="#581c87" stroke="#c084fc" stroke-width="1.2"/>
+  <text x="597" y="212" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="10.5" font-weight="700" fill="#fff">Stage 2 — Defect Detector</text>
+  <text x="597" y="228" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#e9d5ff">yolov8s_defect_v3.pt</text>
+  <text x="597" y="243" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#e9d5ff">5 classes · mAP50 = 0.764</text>
+  <text x="597" y="257" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#e9d5ff">cracks · corrosion · scratches…</text>
+
+  <!-- ── TIER 2: AGENTIC LOOP ── -->
+
+  <!-- Arrow: Laravel → Agentic loop -->
+  <line x1="328" y1="256" x2="328" y2="298" stroke="#8b5cf6" stroke-width="2" marker-end="url(#arr-p)"/>
+
+  <!-- Arrow: YOLO → Agentic loop -->
+  <line x1="597" y1="274" x2="597" y2="298" stroke="#8b5cf6" stroke-width="2" marker-end="url(#arr-p)"/>
+
+  <!-- Agentic Loop box -->
+  <rect x="166" y="298" width="718" height="174" rx="8" fill="#faf5ff" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="430" y="316" font-family="'Segoe UI',Arial,sans-serif" font-size="10" font-weight="700" fill="#7c3aed">5-TOOL CLAUDE AGENTIC LOOP  ·  claude-sonnet-4-6  ·  InspectionController.php</text>
+
+  <!-- Tool 1 -->
+  <rect x="178" y="324" width="124" height="72" rx="5" fill="#4c1d95" stroke="#a78bfa" stroke-width="1.2"/>
+  <text x="240" y="342" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9" font-weight="700" fill="#ddd6fe">Tool 1</text>
+  <text x="240" y="358" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" font-weight="600" fill="#fff">check_image</text>
+  <text x="240" y="371" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" font-weight="600" fill="#fff">_quality</text>
+  <text x="240" y="385" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#c4b5fd">Resolution + sharpness</text>
+  <text x="240" y="397" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#c4b5fd">pixel variance check</text>
+
+  <!-- Tool 2 -->
+  <rect x="314" y="324" width="124" height="72" rx="5" fill="#4c1d95" stroke="#a78bfa" stroke-width="1.2"/>
+  <text x="376" y="342" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9" font-weight="700" fill="#ddd6fe">Tool 2</text>
+  <text x="376" y="358" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" font-weight="600" fill="#fff">run_yolo</text>
+  <text x="376" y="371" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" font-weight="600" fill="#fff">_scan</text>
+  <text x="376" y="385" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#c4b5fd">Calls FastAPI · injects</text>
+  <text x="376" y="397" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#c4b5fd">YOLO detections</text>
+
+  <!-- Tool 3 -->
+  <rect x="450" y="324" width="124" height="72" rx="5" fill="#4c1d95" stroke="#a78bfa" stroke-width="1.2"/>
+  <text x="512" y="342" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9" font-weight="700" fill="#ddd6fe">Tool 3</text>
+  <text x="512" y="358" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" font-weight="600" fill="#fff">lookup_regulatory</text>
+  <text x="512" y="371" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" font-weight="600" fill="#fff">_context</text>
+  <text x="512" y="385" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#c4b5fd">FDA 21 CFR 820</text>
+  <text x="512" y="397" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#c4b5fd">ISO 14971 · MAUDE</text>
+
+  <!-- Tool 4 -->
+  <rect x="586" y="324" width="124" height="72" rx="5" fill="#4c1d95" stroke="#a78bfa" stroke-width="1.2"/>
+  <text x="648" y="342" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9" font-weight="700" fill="#ddd6fe">Tool 4</text>
+  <text x="648" y="358" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" font-weight="600" fill="#fff">calculate_risk</text>
+  <text x="648" y="371" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" font-weight="600" fill="#fff">_score</text>
+  <text x="648" y="385" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#c4b5fd">CRS = S·O·D ×</text>
+  <text x="648" y="397" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#c4b5fd">P(recall) × trend</text>
+
+  <!-- Tool 5 -->
+  <rect x="722" y="324" width="148" height="72" rx="5" fill="#4c1d95" stroke="#a78bfa" stroke-width="1.2"/>
+  <text x="796" y="342" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9" font-weight="700" fill="#ddd6fe">Tool 5</text>
+  <text x="796" y="358" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" font-weight="600" fill="#fff">finalize_inspection</text>
+  <text x="796" y="371" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" font-weight="600" fill="#fff">_report</text>
+  <text x="796" y="385" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#c4b5fd">Structured verdict</text>
+  <text x="796" y="397" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#c4b5fd">stored in DB · auditable</text>
+
+  <!-- Arrows between tools -->
+  <line x1="302" y1="360" x2="314" y2="360" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arr-p)"/>
+  <line x1="438" y1="360" x2="450" y2="360" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arr-p)"/>
+  <line x1="574" y1="360" x2="586" y2="360" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arr-p)"/>
+  <line x1="710" y1="360" x2="722" y2="360" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arr-p)"/>
+
+  <!-- Annotations -->
+  <text x="450" y="416" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#7c3aed">All tool calls stored in agent_steps (JSON) — fully auditable Device History Record per 21 CFR 820.184</text>
+  <text x="450" y="432" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#7c3aed">Risk tiers: LOW &lt;50 · MEDIUM 50–149 · HIGH 150–299 · CRITICAL ≥300 (auto-FAIL)</text>
+  <text x="450" y="448" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#7c3aed">Verdict: PASS / FLAGGED / FAIL  ·  Confidence score always visible</text>
+
+  <!-- External: Claude API -->
+  <rect x="736" y="164" width="132" height="56" rx="6" fill="#fff" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="802" y="186" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="11" font-weight="700" fill="#7c3aed">Claude API</text>
+  <text x="802" y="201" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#6d28d9">Anthropic</text>
+  <text x="802" y="214" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#6d28d9">claude-sonnet-4-6</text>
+  <!-- bidirectional arrows -->
+  <line x1="796" y1="298" x2="796" y2="220" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr-p)"/>
+  <line x1="806" y1="220" x2="806" y2="298" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr-p)"/>
+
+  <!-- ── TIER 3: STORAGE + OUTPUTS ── -->
+
+  <!-- Down arrow from loop -->
+  <line x1="450" y1="472" x2="450" y2="494" stroke="#10b981" stroke-width="2" marker-end="url(#arr-g)"/>
+
+  <!-- SQLite -->
+  <rect x="166" y="494" width="180" height="62" rx="7" fill="#064e3b" stroke="#10b981" stroke-width="1.5"/>
+  <text x="256" y="518" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="12" font-weight="700" fill="#fff">SQLite</text>
+  <text x="256" y="534" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#6ee7b7">inspections · audit_log</text>
+  <text x="256" y="547" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#6ee7b7">agent_steps · settings</text>
+
+  <!-- DHR PDF -->
+  <rect x="362" y="494" width="156" height="62" rx="7" fill="#064e3b" stroke="#10b981" stroke-width="1.5"/>
+  <text x="440" y="518" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="11" font-weight="700" fill="#fff">DHR PDF</text>
+  <text x="440" y="533" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#6ee7b7">21 CFR 820.184</text>
+  <text x="440" y="547" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#6ee7b7">Device History Record</text>
+
+  <!-- Audit Log -->
+  <rect x="532" y="494" width="156" height="62" rx="7" fill="#064e3b" stroke="#10b981" stroke-width="1.5"/>
+  <text x="610" y="518" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="11" font-weight="700" fill="#fff">Audit Log</text>
+  <text x="610" y="533" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#6ee7b7">21 CFR Part 11</text>
+  <text x="610" y="547" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#6ee7b7">CSV export</text>
+
+  <!-- Dashboard KPIs -->
+  <rect x="702" y="494" width="182" height="62" rx="7" fill="#064e3b" stroke="#10b981" stroke-width="1.5"/>
+  <text x="793" y="518" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="11" font-weight="700" fill="#fff">Dashboard KPIs</text>
+  <text x="793" y="533" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#6ee7b7">Cost savings · Defect rate</text>
+  <text x="793" y="547" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#6ee7b7">Inspections · ROI model</text>
+
+  <!-- Connecting arrows to outputs -->
+  <line x1="346" y1="525" x2="362" y2="525" stroke="#10b981" stroke-width="1.2" marker-end="url(#arr-g)"/>
+  <line x1="518" y1="525" x2="532" y2="525" stroke="#10b981" stroke-width="1.2" marker-end="url(#arr-g)"/>
+  <line x1="688" y1="525" x2="702" y2="525" stroke="#10b981" stroke-width="1.2" marker-end="url(#arr-g)"/>
+
+  <!-- Footer -->
+  <rect y="572" width="900" height="48" fill="#0f172a"/>
+  <text x="18" y="592" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#64748b">GitHub: vincentdr-code/cosmas-surgical-qc  ·  75 commits</text>
+  <text x="450" y="592" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#64748b">CUA AI Vibe Coding Competition  ·  June 13, 2026</text>
+  <text x="882" y="592" text-anchor="end" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#64748b">SIC 3841</text>
+  <text x="18" y="610" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#475569">&#x25A0; Infrastructure  &#x25A0; YOLO Pipeline  &#x25A0; Claude Agentic Loop  &#x25A0; Storage &amp; Output</text>
+  <text x="882" y="610" text-anchor="end" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#475569">Augments human QC — does not replace it</text>
+</svg>

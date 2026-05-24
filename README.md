@@ -21,6 +21,8 @@ The answer the system demonstrates: $0.14 saved per inspection unit vs. manual r
 
 ## Architecture Overview
 
+![COSMAS DAMIAN System Architecture](architecture.svg)
+
 ```
 Browser / React SPA (Vite)
         │
