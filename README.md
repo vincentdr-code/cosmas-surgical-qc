@@ -218,7 +218,7 @@ pip install -r requirements.txt
 uvicorn main:app --host 127.0.0.1 --port 8001
 ```
 
-Demo credentials: `admin@cosmas-sentry.com` / `Z7%Gui56`
+Demo credentials: `admin@cosmas-damian.com` / `Ft^T@tLQiTUAeFVf`
 
 ---
 
@@ -284,7 +284,7 @@ DAMIAN augments human judgment — it does not replace it.
 
 | URL | Credentials |
 |-----|-------------|
-| https://cosmas-damian.duckdns.org | `admin@cosmas-sentry.com` / `Z7%Gui56` |
+| https://cosmas-damian.duckdns.org | `admin@cosmas-damian.com` / `Ft^T@tLQiTUAeFVf` |
 
 The demo account has 60+ real inspection records from actual test runs. Upload any surgical instrument image to trigger the full two-stage AI pipeline (YOLOv8n classifier → YOLOv8s defect detector → Claude reasoning → FMEA risk score → verdict).
 
