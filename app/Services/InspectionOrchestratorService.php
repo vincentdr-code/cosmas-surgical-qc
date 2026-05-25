@@ -1057,13 +1057,42 @@ PROMPT;
 
     private function applyConfidenceThreshold(array $report, int $threshold): array
     {
-        if (strtoupper($report['verdict'] ?? '') === 'PASS'
-            && ($report['confidence'] ?? 0) < $threshold) {
-            $report['verdict']            = 'FLAGGED';
-            $report['reasoning']          = ($report['reasoning'] ?? '')
-                . " [Auto-flagged: AI confidence ({$report['confidence']}%) is below your QC threshold ({$threshold}%). Human review required per FDA 21 CFR Part 11.]";
-            $report['recommended_action'] = 'Flag for supervisor review — confidence threshold not met';
+        $confidence = (int)($report['confidence'] ?? 0);
+
+        // Confidence meets or exceeds threshold — no intervention needed
+        if ($confidence >= $threshold) {
+            return $report;
         }
+
+        // All sub-threshold cases share this FDA-traceable caveat
+        $caveat = " [Confidence ({$confidence}%) is below your QC threshold ({$threshold}%)."
+            . ' Human review required before any disposition action per FDA 21 CFR Part 11.]';
+
+        // Case 1: PASS with sub-threshold confidence → escalate to FLAGGED for human review
+        if (strtoupper($report['verdict'] ?? '') === 'PASS') {
+            $report['verdict']            = 'FLAGGED';
+            $report['recommended_action'] = 'Flag for supervisor review — confidence threshold not met.';
+            $report['reasoning']          = ($report['reasoning'] ?? '') . $caveat;
+            return $report;
+        }
+
+        // Case 2: CRITICAL with sub-threshold confidence → cap at HIGH
+        // CRITICAL = "discard immediately" — an irreversible action that requires threshold-level
+        // confidence. Sub-threshold evidence cannot justify discard; quarantine + review is correct.
+        if (($report['risk_level'] ?? '') === 'CRITICAL') {
+            $report['risk_level']           = 'HIGH';
+            $report['composite_risk_score'] = min((float)($report['composite_risk_score'] ?? 299.0), 299.0);
+            $report['recommended_action']   = 'Quarantine for supervisor review — sub-threshold confidence, manual inspection required.';
+            $report['reasoning']            = ($report['reasoning'] ?? '')
+                . $caveat
+                . " [CRITICAL downgraded to HIGH: discard decisions require confidence >= {$threshold}%."
+                . ' Quarantine and review per FDA 21 CFR Part 820.80(c).]';
+            return $report;
+        }
+
+        // Case 3: FAIL or FLAGGED with HIGH/MEDIUM/LOW risk and sub-threshold confidence
+        // Verdict stands but audit trail must reflect the uncertainty
+        $report['reasoning'] = ($report['reasoning'] ?? '') . $caveat;
         return $report;
     }
 
