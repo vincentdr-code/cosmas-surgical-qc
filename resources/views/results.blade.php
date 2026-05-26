@@ -324,13 +324,72 @@
 
             {{-- INSTRUMENT IMAGE --}}
             <div class="tac-card" style="padding:0;">
-                <div style="padding:10px 16px; border-bottom:1px solid rgba(255,255,255,0.06); position:relative; z-index:1;">
+                <div style="padding:10px 16px; border-bottom:1px solid rgba(255,255,255,0.06); position:relative; z-index:1; display:flex; align-items:center; justify-content:space-between;">
                     <span class="sec-label">INSPECTED IMAGE</span>
+                    @if(!empty($yoloDets))
+                    <span style="font-size:10px; color:{{ $verdictColor }}; font-weight:700; letter-spacing:0.08em;">
+                        {{ count($yoloDets) }} DETECTION{{ count($yoloDets) !== 1 ? 'S' : '' }}
+                    </span>
+                    @endif
                 </div>
                 <div style="padding:12px; position:relative; z-index:1;">
-                    <img src="{{ Storage::url($inspection->image_path) }}"
-                         alt="Inspected instrument"
-                         style="width:100%; display:block; object-fit:contain; max-height:260px; background:var(--navy); border:1px solid rgba(255,255,255,0.06);">
+                    {{-- Bounding box overlay wrapper --}}
+                    <div style="position:relative; line-height:0;" id="bbox-wrapper">
+                        <img src="{{ Storage::url($inspection->image_path) }}"
+                             alt="Inspected instrument"
+                             id="inspection-img"
+                             style="width:100%; display:block; object-fit:contain; max-height:320px; background:var(--navy); border:1px solid rgba(255,255,255,0.06);"
+                             onload="renderBboxOverlay(this)">
+
+                        {{-- SVG overlay — positioned by JS after image loads --}}
+                        @if(!empty($yoloDets))
+                        <svg id="bbox-svg"
+                             style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; display:none;"
+                             xmlns="http://www.w3.org/2000/svg">
+                        </svg>
+                        @php
+                            $bboxJson = json_encode(array_map(fn($d) => [
+                                'x1'         => $d['bbox'][0] ?? ($d['x1'] ?? 0),
+                                'y1'         => $d['bbox'][1] ?? ($d['y1'] ?? 0),
+                                'x2'         => $d['bbox'][2] ?? ($d['x2'] ?? 0),
+                                'y2'         => $d['bbox'][3] ?? ($d['y2'] ?? 0),
+                                'label'      => $d['class_name'] ?? ($d['defect_type'] ?? 'defect'),
+                                'confidence' => $d['confidence'] ?? 0,
+                                'severity'   => $d['severity'] ?? 'medium',
+                            ], $yoloDets));
+                        @endphp
+                        <script>
+                        (function() {
+                            var dets = {!! $bboxJson !!};
+                            window.renderBboxOverlay = function(img) {
+                                var svg = document.getElementById('bbox-svg');
+                                if (!svg || !dets.length) return;
+                                var nw = img.naturalWidth, nh = img.naturalHeight;
+                                if (!nw || !nh) return;
+                                svg.setAttribute('viewBox', '0 0 ' + nw + ' ' + nh);
+                                svg.setAttribute('preserveAspectRatio', 'none');
+                                var html = '';
+                                dets.forEach(function(d) {
+                                    var color = d.severity === 'high' ? '#E05555' : d.severity === 'low' ? '#4CAF82' : '#F39C12';
+                                    var sw = Math.max(nw * 0.003, 1.5);
+                                    var lblH = Math.max(nh * 0.045, 18);
+                                    var fz = Math.max(nh * 0.03, 11);
+                                    var conf = Math.round(d.confidence * 100);
+                                    var lbl = d.label.toUpperCase() + ' ' + conf + '%';
+                                    html += '<rect x="' + d.x1 + '" y="' + d.y1 + '" width="' + (d.x2-d.x1) + '" height="' + (d.y2-d.y1) + '" fill="none" stroke="' + color + '" stroke-width="' + sw + '"/>';
+                                    html += '<rect x="' + d.x1 + '" y="' + (d.y1 - lblH) + '" width="' + Math.min((d.x2-d.x1), nw*0.35) + '" height="' + lblH + '" fill="' + color + '" opacity="0.9"/>';
+                                    html += '<text x="' + (d.x1+4) + '" y="' + (d.y1 - lblH*0.2) + '" fill="white" font-size="' + fz + '" font-family="monospace" font-weight="700" dominant-baseline="middle">' + lbl + '</text>';
+                                });
+                                svg.innerHTML = html;
+                                svg.style.display = 'block';
+                            };
+                            // Fire immediately if image already loaded (cached)
+                            var img = document.getElementById('inspection-img');
+                            if (img && img.complete) renderBboxOverlay(img);
+                        })();
+                        </script>
+                        @endif
+                    </div>
                 </div>
             </div>
 
