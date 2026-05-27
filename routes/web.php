@@ -33,26 +33,42 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-    // Inspection routes
-    Route::get('/upload', [InspectionController::class, 'showUploadForm'])->name('inspections.upload');
+
+    // ── Inspection routes ────────────────────────────────────────────────────
+    Route::get('/upload',  [InspectionController::class, 'showUploadForm'])->name('inspections.upload');
     Route::post('/upload', [InspectionController::class, 'upload'])->name('inspections.store');
-    Route::get('/results/{inspection}', [InspectionController::class, 'results'])->name('inspections.results');
+    Route::get('/results/{inspection}',     [InspectionController::class, 'results'])->name('inspections.results');
     Route::get('/results/{inspection}/dhr', [InspectionController::class, 'dhr'])->name('inspections.dhr');
-    Route::get('/audit-log', [InspectionController::class, 'auditLog'])->name('inspections.audit-log');
+    Route::get('/audit-log',                [InspectionController::class, 'auditLog'])->name('inspections.audit-log');
+    Route::get('/audit-log/export-csv',     [InspectionController::class, 'exportCsv'])->name('inspections.export-csv');
     Route::get('/roi', [RoiController::class, 'index'])->name('roi');
 
+    // ── Inspection trace ─────────────────────────────────────────────────────
+    Route::get('/inspections/{inspection}/trace', [InspectionController::class, 'trace'])->name('inspections.trace');
 
-    // Damian -- QC Intelligence (NL query)
-    Route::get('/damian', [App\Http\Controllers\IntelController::class, 'index'])->name('intel.index');
+    // ── DAMIAN QC Intelligence (NL -> SQL) ───────────────────────────────────
+    Route::get('/damian',        [App\Http\Controllers\IntelController::class, 'index'])->name('intel.index');
     Route::post('/damian/query', [App\Http\Controllers\IntelController::class, 'query'])->name('intel.query');
-    // Settings routes
-    Route::get('/settings/threshold', [App\Http\Controllers\SettingsController::class, 'threshold'])->name('settings.threshold');
+
+    // ── Settings ─────────────────────────────────────────────────────────────
+    Route::get('/settings/threshold',   [App\Http\Controllers\SettingsController::class, 'threshold'])->name('settings.threshold');
     Route::patch('/settings/threshold', [App\Http\Controllers\SettingsController::class, 'updateThreshold'])->name('settings.threshold.update');
 
-    // Profile routes
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    // ── Profile ──────────────────────────────────────────────────────────────
+    Route::get('/profile',    [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile',  [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
 });
 
 require __DIR__.'/auth.php';
+
+// ── How It Works ─────────────────────────────────────────────────────────────
+Route::get('/how-it-works', function () {
+    return view('how-it-works');
+})->name('how-it-works');
+
+// ── Public ROI Analysis API — called by cosmas-website.vercel.app ─────────────
+// No auth required. CORS + CSRF bypass handled in RoiController::analyze().
+Route::match(['POST', 'OPTIONS'], '/api/roi-analysis', [RoiController::class, 'analyze'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
