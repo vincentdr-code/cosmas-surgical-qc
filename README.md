@@ -259,7 +259,7 @@ Tests cover: login page loads · auth-protected routes redirect · `/api/v1/heal
 | **AI Feature Innovation & Integration** | **20** | **Claude tool-use agentic loop · YOLOv8s computer vision · FMEA + Bayesian CRS · EV cost matrix · regulatory context lookup** |
 | Technical Execution & Code Quality | 20 | Laravel service layer pattern · typed PHP · conventional commits · CI green |
 | User Experience & Design | 10 | Discomorphism v3 design system · command center home · audit log · responsive layout · one-click sample images |
-| Business Impact & Scalability | 10 | $0.14/unit savings · $16,800/yr at 10k/mo · ROI calculator · Device History Records |
+| Business Impact & Scalability | 10 | $0.14/unit savings · $16,800/yr at 10k/mo · ROI calculator · Device History Records · aligned with active Congressional oversight of AI in medical devices (Senate HELP Committee, Senate Commerce Committee) |
 | GitHub Transparency | 10 | 70+ commits · conventional commit format · rubric-cited commit messages · iterative build visible in history |
 | Documentation & Communication | 10 | This README · How It Works public page · agent chain visible in results view · regulatory citations in every report |
 | Deployment & Live Demo | 10 | Live at https://cosmas-damian.duckdns.org · AWS Free Tier · HTTPS · no excuses needed |
@@ -275,6 +275,16 @@ DAMIAN augments human judgment — it does not replace it.
 - No claim of FDA approval — system is designed to support FDA 21 CFR Part 820-compliant workflows
 - Confidence threshold configurable per user; low-confidence PASSes auto-escalate to FLAGGED
 - All inspection records are permanent, auditable Device History Records
+
+### Legislative Context
+
+DAMIAN is a working proof-of-concept for the kind of AI-augmented QC framework Congress is actively debating. Two relevant committees:
+
+**Senate HELP Committee** (Chair: Sen. Bill Cassidy, M.D., R-LA) oversees FDA and medical device safety legislation. Cassidy is a practicing physician — he understands surgical instrument failure at a clinical level, not just a policy one. Sen. Roger Marshall (R-KS), also an MD on the same committee, brings the same lens. Their active FDA modernization work creates a direct legislative pull for systems like DAMIAN.
+
+**Senate Commerce Committee** (Chair: Sen. Ted Cruz, R-TX) is scrutinizing AI governance in high-stakes domains including healthcare. DAMIAN's explainability architecture — the five-tool audit trail, confidence scoring, and human-override design — directly addresses the accountability concerns Commerce is legislating around.
+
+DAMIAN does not wait for regulation to catch up. It is designed today to support the AI-in-medical-devices compliance framework that FDA and Congress are actively shaping under 21 CFR Part 820 and Part 11.
 
 ---
 
