@@ -38,6 +38,12 @@
             </a>
             @endif
 
+            @if(Route::has('intel.index'))
+            <a href="{{ route('intel.index') }}"
+               style="font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; color:{{ request()->routeIs('intel.*') ? '#C9963E' : '#8A9BAE' }}; text-decoration:none; padding:6px 14px; letter-spacing:0.08em; text-transform:uppercase; border-bottom: {{ request()->routeIs('intel.*') ? '2px solid #C9963E' : '2px solid transparent' }};">
+                DAMIAN
+            </a>
+            @endif
             @if(Route::has('settings.threshold'))
             <a href="{{ route('settings.threshold') }}"
                style="font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; color:{{ request()->routeIs('settings.*') ? '#C9963E' : '#8A9BAE' }}; text-decoration:none; padding:6px 14px; letter-spacing:0.08em; text-transform:uppercase; border-bottom: {{ request()->routeIs('settings.*') ? '2px solid #C9963E' : '2px solid transparent' }};">
