@@ -66,6 +66,7 @@ class ReactApiController extends Controller
         $total   = Inspection::count();
         $passed  = Inspection::whereRaw("UPPER(pass_fail) = 'PASS'")->count();
         $failed  = Inspection::whereRaw("UPPER(pass_fail) = 'FAIL'")->count();
+        $flagged = Inspection::whereRaw("UPPER(pass_fail) = 'FLAGGED'")->count();
 
         // Build defect_counts from defect_type column
         $rawCounts = Inspection::select('defect_type', DB::raw('COUNT(*) as cnt'))
@@ -84,8 +85,10 @@ class ReactApiController extends Controller
         return $this->cors(response()->json([
             'pass_count'        => $passed,
             'fail_count'        => $failed,
+            'flagged_count'     => $flagged,
             'total_inspections' => $total,
             'defect_counts'     => $defectCounts,
+            'cost_saved'        => round($total * 0.14, 2),
         ]));
     }
 
@@ -127,6 +130,144 @@ class ReactApiController extends Controller
     {
         // Return as streaming CSV — reuse existing exportCsv logic
         abort(302, '', ['Location' => '/audit-log/export']);
+    }
+
+    // ── POST /api/react/inspect-stream  (SSE streaming — primary path) ──────
+    /**
+     * Server-Sent Events inspection endpoint.
+     *
+     * Streams progress events to the React pipeline visualizer as each of the
+     * 5 agent tools completes. The frontend (App.jsx) subscribes to this via
+     * the EventSource / fetch-reader pattern and updates the step indicators
+     * in real time.
+     *
+     * Event types:
+     *   { type: "step",     step_index, label, status, result }
+     *   { type: "complete", data: <full inspection result> }
+     *   { type: "error",    message }
+     *
+     * nginx must have fastcgi_buffering off for this location so events
+     * reach the client without batching. See cosmas.nginx.conf.
+     */
+    public function inspectStream(Request $request)
+    {
+        $request->validate(['file' => 'required|image|mimes:jpeg,png,jpg,bmp|max:10240']);
+
+        // Store early — stream closure captures the path
+        $image      = $request->file('file');
+        $operatorId = $request->get('operator_id', 'OP-WEB-001');
+        $imagePath  = $image->store('inspections', 'public');
+        $fullPath   = storage_path('app/public/' . $imagePath);
+        $instrId    = 'INST-' . strtoupper(substr(md5(uniqid()), 0, 8));
+        $start      = microtime(true);
+
+        return response()->stream(function () use ($fullPath, $imagePath, $instrId, $operatorId, $start) {
+
+            // Kill any output buffers so echo reaches nginx immediately
+            while (ob_get_level() > 0) { @ob_end_flush(); }
+            @ob_implicit_flush(true);
+
+            /** Send one SSE event and flush immediately */
+            $emit = function (array $payload) {
+                echo 'data: ' . json_encode($payload) . "\n\n";
+                @ob_flush();
+                flush();
+            };
+
+            try {
+                $orchestrator = app(\App\Services\InspectionOrchestratorService::class);
+
+                // Progress callback — called after each tool completes
+                $onStep = function (int $idx, string $tool, string $label, string $status, string $result) use ($emit) {
+                    $emit([
+                        'type'       => 'step',
+                        'step_index' => $idx,
+                        'tool'       => $tool,
+                        'label'      => $label,
+                        'status'     => $status,
+                        'result'     => $result,
+                    ]);
+                };
+
+                $result       = $orchestrator->runInspection($fullPath, 70, $onStep);
+                $processingMs = round((microtime(true) - $start) * 1000, 1);
+
+                // Extract YOLO data from agent steps
+                $agentSteps = $result['agent_steps'] ?? [];
+                $yoloStep   = collect($agentSteps)->firstWhere('tool', 'run_yolo_scan');
+                $yoloData   = $yoloStep['result'] ?? [];
+                $detections = $yoloData['detections'] ?? [];
+                $costMatrix = $result['cost_matrix'] ?? null;
+
+                // Persist
+                $savedInspection = \App\Models\Inspection::create([
+                    'instrument_id'        => $instrId,
+                    'operator_id'          => $operatorId,
+                    'user_id'              => 1,
+                    'image_path'           => $imagePath,
+                    'defect_type'          => $result['defect_type']          ?? 'Unknown',
+                    'instrument_class'     => $result['instrument_class']     ?? null,
+                    'confidence'           => $result['confidence']           ?? 0,
+                    'pass_fail'            => $result['verdict']              ?? 'FAIL',
+                    'claude_reasoning'     => $result['reasoning']            ?? '',
+                    'regulatory_note'      => $result['regulatory_note']      ?? null,
+                    'recommended_action'   => $result['recommended_action']   ?? null,
+                    'composite_risk_score' => $result['composite_risk_score'] ?? null,
+                    'risk_level'           => $result['risk_level']           ?? null,
+                    'agent_steps'          => json_encode($agentSteps),
+                    'cost_matrix'          => $costMatrix ? json_encode($costMatrix) : null,
+                    'yolo_detections'      => json_encode($detections),
+                    'yolo_count'           => $yoloData['count']              ?? 0,
+                    'yolo_model'           => $yoloData['model_used']         ?? 'unavailable',
+                    'inference_ms'         => $processingMs,
+                ]);
+
+                $conf           = (float) ($result['confidence'] ?? 0);
+                $firstBbox      = !empty($detections) ? ($detections[0]['bounding_box'] ?? null) : null;
+                $safeDetections = array_values(array_filter(
+                    array_map(fn($d) => isset($d['bounding_box']['x1']) ? [
+                        'defect_type'  => $d['class_name']  ?? 'unknown',
+                        'confidence'   => $d['confidence']  ?? 0,
+                        'pass_fail'    => ($d['severity'] ?? '') === 'HIGH' ? 'FAIL' : 'PASS',
+                        'bounding_box' => $d['bounding_box'],
+                    ] : null, $detections),
+                    fn($d) => $d !== null
+                ));
+
+                // Final complete event — React redirects to results page on receipt
+                $emit([
+                    'type' => 'complete',
+                    'data' => [
+                        'pass_fail'            => strtoupper($result['verdict'] ?? 'FAIL'),
+                        'defect_type'          => $result['defect_type']          ?? 'Unknown',
+                        'confidence'           => round($conf / 100, 4),
+                        'instrument_id'        => $instrId,
+                        'timestamp'            => now()->toIso8601String(),
+                        'processing_time_ms'   => $processingMs,
+                        'detection_count'      => count($detections),
+                        'plc_signal_sent'      => true,
+                        'bounding_box'         => $firstBbox,
+                        'risk_level'           => $result['risk_level']           ?? 'UNKNOWN',
+                        'composite_risk_score' => $result['composite_risk_score'] ?? null,
+                        'crs_factors'          => $result['crs_factors']          ?? null,
+                        'agent_steps'          => $result['agent_steps']          ?? [],
+                        'reasoning'            => $result['reasoning']            ?? '',
+                        'all_detections'       => $safeDetections,
+                        'inspection_id'        => $savedInspection->id,
+                    ],
+                ]);
+
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('inspectStream error: ' . $e->getMessage());
+                $emit(['type' => 'error', 'message' => 'Inspection failed: ' . $e->getMessage()]);
+            }
+
+        }, 200, [
+            'Content-Type'      => 'text/event-stream',
+            'Cache-Control'     => 'no-cache, no-store',
+            'Connection'        => 'keep-alive',
+            'X-Accel-Buffering' => 'no',   // disables nginx FastCGI buffering
+        ]);
     }
 
     // ── POST /api/react/inspect ──────────────────────────────────────────────
@@ -204,6 +345,8 @@ class ReactApiController extends Controller
             'bounding_box'         => $firstBbox,
             'risk_level'           => $result['risk_level']           ?? 'UNKNOWN',
             'composite_risk_score' => $result['composite_risk_score'] ?? null,
+            'crs_factors'          => $result['crs_factors']          ?? null,
+            'agent_steps'          => $result['agent_steps']          ?? [],
             'reasoning'            => $result['reasoning']            ?? '',
             'all_detections'       => $safeDetections,
             'inspection_id'        => $savedInspection->id,

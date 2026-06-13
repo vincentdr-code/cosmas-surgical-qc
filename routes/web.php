@@ -43,6 +43,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/audit-log/export-csv',     [InspectionController::class, 'exportCsv'])->name('inspections.export-csv');
     Route::get('/roi', [RoiController::class, 'index'])->name('roi');
 
+    // ── Inspection image serve (bypasses storage symlink requirement) ────────
+    Route::get('/image/{inspection}', [InspectionController::class, 'serveImage'])->name('inspections.image');
+
     // ── Inspection trace ─────────────────────────────────────────────────────
     Route::get('/inspections/{inspection}/trace', [InspectionController::class, 'trace'])->name('inspections.trace');
 

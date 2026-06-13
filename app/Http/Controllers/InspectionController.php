@@ -131,9 +131,24 @@ class InspectionController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-    public function dhr(\App\Models\Inspection $inspection)
+    /**
+     * Serve the uploaded inspection image directly through PHP.
+     * Bypasses the storage symlink (php artisan storage:link) requirement —
+     * the file is read from storage_path() and streamed with correct MIME type.
+     */
+    public function serveImage(Inspection $inspection)
     {
-        return view('inspections.dhr', compact('inspection'));
-    }
+        $path = storage_path('app/public/' . $inspection->image_path);
 
+        if (!$inspection->image_path || !file_exists($path)) {
+            abort(404, 'Image not found');
+        }
+
+        $mime = mime_content_type($path) ?: 'image/jpeg';
+
+        return response()->file($path, [
+            'Content-Type'  => $mime,
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
+    }
 }
